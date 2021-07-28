@@ -1,4 +1,4 @@
-import resolve from 'rollup-plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default {
 	input: 'src/main.js',
@@ -7,6 +7,9 @@ export default {
     format: 'umd'
   },
   plugins: [
-    resolve()
+    nodeResolve({
+      jsnext: true,
+      browser: true
+    })
   ]
 };
