@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "apache-arrow": "^4.0.1",
-    "rollup": "^2.54.0",
+    "apache-arrow": "^5.0.0",
+    "rollup": "^2.55.0",
     "@rollup/plugin-node-resolve": "^13.0.4"
   },
   "scripts": {

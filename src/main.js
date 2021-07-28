@@ -8,4 +8,5 @@ const bytes2 = Uint8Array.from([65,82,82,79,87,49,0,0,255,255,255,255,120,0,0,0,
 const table2 = Table.from(bytes2);
 
 console.log("table2", table2);
+// thows error: Uncaught TypeError: chunks[0].toArray is not a function
 console.log("table2", table2.toArray());
