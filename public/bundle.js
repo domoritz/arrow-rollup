@@ -18,18 +18,6 @@
     PERFORMANCE OF THIS SOFTWARE.
     ***************************************************************************** */
 
-    function __rest(s, e) {
-        var t = {};
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-            t[p] = s[p];
-        if (s != null && typeof Object.getOwnPropertySymbols === "function")
-            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                    t[p[i]] = s[p[i]];
-            }
-        return t;
-    }
-
     function __awaiter(thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -1472,28 +1460,6 @@
         BigIntUnavailable.asUintN = () => { throw BigIntUnavailableError(); };
         return typeof BigInt !== 'undefined' ? [BigInt, true] : [BigIntUnavailable, false];
     })();
-    /** @ignore */
-    const [BigInt64ArrayCtor, BigInt64ArrayAvailable] = (() => {
-        const BigInt64ArrayUnavailableError = () => { throw new Error('BigInt64Array is not available in this environment'); };
-        class BigInt64ArrayUnavailable {
-            static get BYTES_PER_ELEMENT() { return 8; }
-            static of() { throw BigInt64ArrayUnavailableError(); }
-            static from() { throw BigInt64ArrayUnavailableError(); }
-            constructor() { throw BigInt64ArrayUnavailableError(); }
-        }
-        return typeof BigInt64Array !== 'undefined' ? [BigInt64Array, true] : [BigInt64ArrayUnavailable, false];
-    })();
-    /** @ignore */
-    const [BigUint64ArrayCtor, BigUint64ArrayAvailable] = (() => {
-        const BigUint64ArrayUnavailableError = () => { throw new Error('BigUint64Array is not available in this environment'); };
-        class BigUint64ArrayUnavailable {
-            static get BYTES_PER_ELEMENT() { return 8; }
-            static of() { throw BigUint64ArrayUnavailableError(); }
-            static from() { throw BigUint64ArrayUnavailableError(); }
-            constructor() { throw BigUint64ArrayUnavailableError(); }
-        }
-        return typeof BigUint64Array !== 'undefined' ? [BigUint64Array, true] : [BigUint64ArrayUnavailable, false];
-    })();
     /** @ignore */ const isNumber = (x) => typeof x === 'number';
     /** @ignore */ const isBoolean = (x) => typeof x === 'boolean';
     /** @ignore */ const isFunction = (x) => typeof x === 'function';
@@ -1651,9 +1617,7 @@
             : new ArrayBufferViewCtor(value.buffer, value.byteOffset, value.byteLength / ArrayBufferViewCtor.BYTES_PER_ELEMENT);
     }
     /** @ignore */ const toInt32Array = (input) => toArrayBufferView(Int32Array, input);
-    /** @ignore */ const toBigInt64Array = (input) => toArrayBufferView(BigInt64ArrayCtor, input);
     /** @ignore */ const toUint8Array = (input) => toArrayBufferView(Uint8Array, input);
-    /** @ignore */ const toBigUint64Array = (input) => toArrayBufferView(BigUint64ArrayCtor, input);
     /** @ignore */
     const pump$1 = (iterator) => { iterator.next(); return iterator; };
     /** @ignore */
@@ -1722,22 +1686,6 @@
             }
         }
         return valueOffsets;
-    }
-    /** @ignore */
-    function compareArrayLike(a, b) {
-        let i = 0;
-        const n = a.length;
-        if (n !== b.length) {
-            return false;
-        }
-        if (n > 0) {
-            do {
-                if (a[i] !== b[i]) {
-                    return false;
-                }
-            } while (++i < n);
-        }
-        return true;
     }
 
     // Licensed to the Apache Software Foundation (ASF) under one
@@ -3255,7 +3203,7 @@
      *
      * @constructor
      */
-    class Date$1 {
+    class Date {
         constructor() {
             this.bb = null;
             this.bb_pos = 0;
@@ -3276,7 +3224,7 @@
          * @returns Date
          */
         static getRootAsDate(bb, obj) {
-            return (obj || new Date$1()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+            return (obj || new Date()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
         }
         /**
          * @param flatbuffers.ByteBuffer bb
@@ -3285,7 +3233,7 @@
          */
         static getSizePrefixedRootAsDate(bb, obj) {
             bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-            return (obj || new Date$1()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+            return (obj || new Date()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
         }
         /**
          * @returns DateUnit
@@ -3316,9 +3264,9 @@
             return offset;
         }
         static createDate(builder, unit) {
-            Date$1.startDate(builder);
-            Date$1.addUnit(builder, unit);
-            return Date$1.endDate(builder);
+            Date.startDate(builder);
+            Date.addUnit(builder, unit);
+            return Date.endDate(builder);
         }
     }
     /**
@@ -5064,18 +5012,12 @@
     // specific language governing permissions and limitations
     // under the License.
     /** @ignore */
-    function getBool$1(_data, _index, byte, bit) {
+    function getBool(_data, _index, byte, bit) {
         return (byte & 1 << bit) !== 0;
     }
     /** @ignore */
     function getBit(_data, _index, byte, bit) {
         return (byte & 1 << bit) >> bit;
-    }
-    /** @ignore */
-    function setBool$1(bytes, index, value) {
-        return value ?
-            !!(bytes[index >> 3] |= (1 << (index % 8))) || true :
-            !(bytes[index >> 3] &= ~(1 << (index % 8))) && false;
     }
     /** @ignore */
     function truncateBitmap(offset, length, bitmap) {
@@ -5085,7 +5027,7 @@
             // If the offset is a multiple of 8 bits, it's safe to slice the bitmap
             bytes.set(offset % 8 === 0 ? bitmap.subarray(offset >> 3) :
                 // Otherwise iterate each bit from the offset and return a new one
-                packBools(new BitIterator(bitmap, offset, length, null, getBool$1)).subarray(0, alignedSize));
+                packBools(new BitIterator(bitmap, offset, length, null, getBool)).subarray(0, alignedSize));
             return bytes;
         }
         return bitmap;
@@ -5400,14 +5342,6 @@
         proto.ArrayType = Int32Array;
         return proto[Symbol.toStringTag] = 'Date';
     })(Date_.prototype);
-    /** @ignore */
-    class DateDay extends Date_ {
-        constructor() { super(DateUnit.DAY); }
-    }
-    /** @ignore */
-    class DateMillisecond extends Date_ {
-        constructor() { super(DateUnit.MILLISECOND); }
-    }
     /** @ignore */
     class Time_ extends DataType {
         constructor(unit, bitWidth) {
@@ -5851,720 +5785,6 @@
     }
 
     // Licensed to the Apache Software Foundation (ASF) under one
-    /**
-     * Dynamically compile the null values into an `isValid()` function whose
-     * implementation is a switch statement. Microbenchmarks in v8 indicate
-     * this approach is 25% faster than using an ES6 Map.
-     *
-     * @example
-     * console.log(createIsValidFunction([null, 'N/A', NaN]));
-     * `function (x) {
-     *     if (x !== x) return false;
-     *     switch (x) {
-     *         case null:
-     *         case "N/A":
-     *             return false;
-     *     }
-     *     return true;
-     * }`
-     *
-     * @ignore
-     * @param nullValues
-     */
-    function createIsValidFunction(nullValues) {
-        if (!nullValues || nullValues.length <= 0) {
-            // @ts-ignore
-            return function isValid(value) { return true; };
-        }
-        let fnBody = '';
-        const noNaNs = nullValues.filter((x) => x === x);
-        if (noNaNs.length > 0) {
-            fnBody = `
-    switch (x) {${noNaNs.map((x) => `
-        case ${valueToCase(x)}:`).join('')}
-            return false;
-    }`;
-        }
-        // NaN doesn't equal anything including itself, so it doesn't work as a
-        // switch case. Instead we must explicitly check for NaN before the switch.
-        if (nullValues.length !== noNaNs.length) {
-            fnBody = `if (x !== x) return false;\n${fnBody}`;
-        }
-        return new Function(`x`, `${fnBody}\nreturn true;`);
-    }
-    /** @ignore */
-    function valueToCase(x) {
-        if (typeof x !== 'bigint') {
-            return valueToString(x);
-        }
-        else if (BigIntAvailable) {
-            return `${valueToString(x)}n`;
-        }
-        return `"${valueToString(x)}"`;
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    const roundLengthUpToNearest64Bytes = (len, BPE) => ((((len * BPE) + 63) & ~63) || 64) / BPE;
-    /** @ignore */
-    const sliceOrExtendArray = (arr, len = 0) => (arr.length >= len ? arr.subarray(0, len) : memcpy(new arr.constructor(len), arr, 0));
-    /** @ignore */
-    class BufferBuilder {
-        constructor(buffer, stride = 1) {
-            this.buffer = buffer;
-            this.stride = stride;
-            this.BYTES_PER_ELEMENT = buffer.BYTES_PER_ELEMENT;
-            this.ArrayType = buffer.constructor;
-            this._resize(this.length = buffer.length / stride | 0);
-        }
-        get byteLength() { return this.length * this.stride * this.BYTES_PER_ELEMENT | 0; }
-        get reservedLength() { return this.buffer.length / this.stride; }
-        get reservedByteLength() { return this.buffer.byteLength; }
-        // @ts-ignore
-        set(index, value) { return this; }
-        append(value) { return this.set(this.length, value); }
-        reserve(extra) {
-            if (extra > 0) {
-                this.length += extra;
-                const stride = this.stride;
-                const length = this.length * stride;
-                const reserved = this.buffer.length;
-                if (length >= reserved) {
-                    this._resize(reserved === 0
-                        ? roundLengthUpToNearest64Bytes(length * 1, this.BYTES_PER_ELEMENT)
-                        : roundLengthUpToNearest64Bytes(length * 2, this.BYTES_PER_ELEMENT));
-                }
-            }
-            return this;
-        }
-        flush(length = this.length) {
-            length = roundLengthUpToNearest64Bytes(length * this.stride, this.BYTES_PER_ELEMENT);
-            const array = sliceOrExtendArray(this.buffer, length);
-            this.clear();
-            return array;
-        }
-        clear() {
-            this.length = 0;
-            this._resize(0);
-            return this;
-        }
-        _resize(newLength) {
-            return this.buffer = memcpy(new this.ArrayType(newLength), this.buffer);
-        }
-    }
-    BufferBuilder.prototype.offset = 0;
-    /** @ignore */
-    class DataBufferBuilder extends BufferBuilder {
-        last() { return this.get(this.length - 1); }
-        get(index) { return this.buffer[index]; }
-        set(index, value) {
-            this.reserve(index - this.length + 1);
-            this.buffer[index * this.stride] = value;
-            return this;
-        }
-    }
-    /** @ignore */
-    class BitmapBufferBuilder extends DataBufferBuilder {
-        constructor(data = new Uint8Array(0)) {
-            super(data, 1 / 8);
-            this.numValid = 0;
-        }
-        get numInvalid() { return this.length - this.numValid; }
-        get(idx) { return this.buffer[idx >> 3] >> idx % 8 & 1; }
-        set(idx, val) {
-            const { buffer } = this.reserve(idx - this.length + 1);
-            const byte = idx >> 3, bit = idx % 8, cur = buffer[byte] >> bit & 1;
-            // If `val` is truthy and the current bit is 0, flip it to 1 and increment `numValid`.
-            // If `val` is falsey and the current bit is 1, flip it to 0 and decrement `numValid`.
-            val ? cur === 0 && ((buffer[byte] |= (1 << bit)), ++this.numValid)
-                : cur === 1 && ((buffer[byte] &= ~(1 << bit)), --this.numValid);
-            return this;
-        }
-        clear() {
-            this.numValid = 0;
-            return super.clear();
-        }
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /**
-     * An abstract base class for types that construct Arrow Vectors from arbitrary JavaScript values.
-     *
-     * A `Builder` is responsible for writing arbitrary JavaScript values
-     * to ArrayBuffers and/or child Builders according to the Arrow specification
-     * for each DataType, creating or resizing the underlying ArrayBuffers as necessary.
-     *
-     * The `Builder` for each Arrow `DataType` handles converting and appending
-     * values for a given `DataType`. The high-level {@link Builder.new `Builder.new()`} convenience
-     * method creates the specific `Builder` subclass for the supplied `DataType`.
-     *
-     * Once created, `Builder` instances support both appending values to the end
-     * of the `Builder`, and random-access writes to specific indices
-     * (`Builder.prototype.append(value)` is a convenience method for
-     * `builder.set(builder.length, value)`). Appending or setting values beyond the
-     * Builder's current length may cause the builder to grow its underlying buffers
-     * or child Builders (if applicable) to accommodate the new values.
-     *
-     * After enough values have been written to a `Builder`, `Builder.prototype.flush()`
-     * will commit the values to the underlying ArrayBuffers (or child Builders). The
-     * internal Builder state will be reset, and an instance of `Data<T>` is returned.
-     * Alternatively, `Builder.prototype.toVector()` will flush the `Builder` and return
-     * an instance of `Vector<T>` instead.
-     *
-     * When there are no more values to write, use `Builder.prototype.finish()` to
-     * finalize the `Builder`. This does not reset the internal state, so it is
-     * necessary to call `Builder.prototype.flush()` or `toVector()` one last time
-     * if there are still values queued to be flushed.
-     *
-     * Note: calling `Builder.prototype.finish()` is required when using a `DictionaryBuilder`,
-     * because this is when it flushes the values that have been enqueued in its internal
-     * dictionary's `Builder`, and creates the `dictionaryVector` for the `Dictionary` `DataType`.
-     *
-     * ```ts
-     * import { Builder, Utf8 } from 'apache-arrow';
-     *
-     * const utf8Builder = Builder.new({
-     *     type: new Utf8(),
-     *     nullValues: [null, 'n/a']
-     * });
-     *
-     * utf8Builder
-     *     .append('hello')
-     *     .append('n/a')
-     *     .append('world')
-     *     .append(null);
-     *
-     * const utf8Vector = utf8Builder.finish().toVector();
-     *
-     * console.log(utf8Vector.toJSON());
-     * // > ["hello", null, "world", null]
-     * ```
-     *
-     * @typeparam T The `DataType` of this `Builder`.
-     * @typeparam TNull The type(s) of values which will be considered null-value sentinels.
-     */
-    class Builder$2 {
-        /**
-         * Construct a builder with the given Arrow DataType with optional null values,
-         * which will be interpreted as "null" when set or appended to the `Builder`.
-         * @param {{ type: T, nullValues?: any[] }} options A `BuilderOptions` object used to create this `Builder`.
-         */
-        constructor({ 'type': type, 'nullValues': nulls }) {
-            /**
-             * The number of values written to the `Builder` that haven't been flushed yet.
-             * @readonly
-             */
-            this.length = 0;
-            /**
-             * A boolean indicating whether `Builder.prototype.finish()` has been called on this `Builder`.
-             * @readonly
-             */
-            this.finished = false;
-            this.type = type;
-            this.children = [];
-            this.nullValues = nulls;
-            this.stride = strideForType(type);
-            this._nulls = new BitmapBufferBuilder();
-            if (nulls && nulls.length > 0) {
-                this._isValid = createIsValidFunction(nulls);
-            }
-        }
-        /**
-         * Create a `Builder` instance based on the `type` property of the supplied `options` object.
-         * @param {BuilderOptions<T, TNull>} options An object with a required `DataType` instance
-         * and other optional parameters to be passed to the `Builder` subclass for the given `type`.
-         *
-         * @typeparam T The `DataType` of the `Builder` to create.
-         * @typeparam TNull The type(s) of values which will be considered null-value sentinels.
-         * @nocollapse
-         */
-        // @ts-ignore
-        static new(options) { }
-        /** @nocollapse */
-        // @ts-ignore
-        static throughNode(options) {
-            throw new Error(`"throughNode" not available in this environment`);
-        }
-        /** @nocollapse */
-        // @ts-ignore
-        static throughDOM(options) {
-            throw new Error(`"throughDOM" not available in this environment`);
-        }
-        /**
-         * Transform a synchronous `Iterable` of arbitrary JavaScript values into a
-         * sequence of Arrow Vector<T> following the chunking semantics defined in
-         * the supplied `options` argument.
-         *
-         * This function returns a function that accepts an `Iterable` of values to
-         * transform. When called, this function returns an Iterator of `Vector<T>`.
-         *
-         * The resulting `Iterator<Vector<T>>` yields Vectors based on the
-         * `queueingStrategy` and `highWaterMark` specified in the `options` argument.
-         *
-         * * If `queueingStrategy` is `"count"` (or omitted), The `Iterator<Vector<T>>`
-         *   will flush the underlying `Builder` (and yield a new `Vector<T>`) once the
-         *   Builder's `length` reaches or exceeds the supplied `highWaterMark`.
-         * * If `queueingStrategy` is `"bytes"`, the `Iterator<Vector<T>>` will flush
-         *   the underlying `Builder` (and yield a new `Vector<T>`) once its `byteLength`
-         *   reaches or exceeds the supplied `highWaterMark`.
-         *
-         * @param {IterableBuilderOptions<T, TNull>} options An object of properties which determine the `Builder` to create and the chunking semantics to use.
-         * @returns A function which accepts a JavaScript `Iterable` of values to
-         *          write, and returns an `Iterator` that yields Vectors according
-         *          to the chunking semantics defined in the `options` argument.
-         * @nocollapse
-         */
-        static throughIterable(options) {
-            return throughIterable(options);
-        }
-        /**
-         * Transform an `AsyncIterable` of arbitrary JavaScript values into a
-         * sequence of Arrow Vector<T> following the chunking semantics defined in
-         * the supplied `options` argument.
-         *
-         * This function returns a function that accepts an `AsyncIterable` of values to
-         * transform. When called, this function returns an AsyncIterator of `Vector<T>`.
-         *
-         * The resulting `AsyncIterator<Vector<T>>` yields Vectors based on the
-         * `queueingStrategy` and `highWaterMark` specified in the `options` argument.
-         *
-         * * If `queueingStrategy` is `"count"` (or omitted), The `AsyncIterator<Vector<T>>`
-         *   will flush the underlying `Builder` (and yield a new `Vector<T>`) once the
-         *   Builder's `length` reaches or exceeds the supplied `highWaterMark`.
-         * * If `queueingStrategy` is `"bytes"`, the `AsyncIterator<Vector<T>>` will flush
-         *   the underlying `Builder` (and yield a new `Vector<T>`) once its `byteLength`
-         *   reaches or exceeds the supplied `highWaterMark`.
-         *
-         * @param {IterableBuilderOptions<T, TNull>} options An object of properties which determine the `Builder` to create and the chunking semantics to use.
-         * @returns A function which accepts a JavaScript `AsyncIterable` of values
-         *          to write, and returns an `AsyncIterator` that yields Vectors
-         *          according to the chunking semantics defined in the `options`
-         *          argument.
-         * @nocollapse
-         */
-        static throughAsyncIterable(options) {
-            return throughAsyncIterable(options);
-        }
-        /**
-         * Flush the `Builder` and return a `Vector<T>`.
-         * @returns {Vector<T>} A `Vector<T>` of the flushed values.
-         */
-        toVector() { return AbstractVector.new(this.flush()); }
-        get ArrayType() { return this.type.ArrayType; }
-        get nullCount() { return this._nulls.numInvalid; }
-        get numChildren() { return this.children.length; }
-        /**
-         * @returns The aggregate length (in bytes) of the values that have been written.
-         */
-        get byteLength() {
-            let size = 0;
-            this._offsets && (size += this._offsets.byteLength);
-            this._values && (size += this._values.byteLength);
-            this._nulls && (size += this._nulls.byteLength);
-            this._typeIds && (size += this._typeIds.byteLength);
-            return this.children.reduce((size, child) => size + child.byteLength, size);
-        }
-        /**
-         * @returns The aggregate number of rows that have been reserved to write new values.
-         */
-        get reservedLength() {
-            return this._nulls.reservedLength;
-        }
-        /**
-         * @returns The aggregate length (in bytes) that has been reserved to write new values.
-         */
-        get reservedByteLength() {
-            let size = 0;
-            this._offsets && (size += this._offsets.reservedByteLength);
-            this._values && (size += this._values.reservedByteLength);
-            this._nulls && (size += this._nulls.reservedByteLength);
-            this._typeIds && (size += this._typeIds.reservedByteLength);
-            return this.children.reduce((size, child) => size + child.reservedByteLength, size);
-        }
-        get valueOffsets() { return this._offsets ? this._offsets.buffer : null; }
-        get values() { return this._values ? this._values.buffer : null; }
-        get nullBitmap() { return this._nulls ? this._nulls.buffer : null; }
-        get typeIds() { return this._typeIds ? this._typeIds.buffer : null; }
-        /**
-         * Appends a value (or null) to this `Builder`.
-         * This is equivalent to `builder.set(builder.length, value)`.
-         * @param {T['TValue'] | TNull } value The value to append.
-         */
-        append(value) { return this.set(this.length, value); }
-        /**
-         * Validates whether a value is valid (true), or null (false)
-         * @param {T['TValue'] | TNull } value The value to compare against null the value representations
-         */
-        isValid(value) { return this._isValid(value); }
-        /**
-         * Write a value (or null-value sentinel) at the supplied index.
-         * If the value matches one of the null-value representations, a 1-bit is
-         * written to the null `BitmapBufferBuilder`. Otherwise, a 0 is written to
-         * the null `BitmapBufferBuilder`, and the value is passed to
-         * `Builder.prototype.setValue()`.
-         * @param {number} index The index of the value to write.
-         * @param {T['TValue'] | TNull } value The value to write at the supplied index.
-         * @returns {this} The updated `Builder` instance.
-         */
-        set(index, value) {
-            if (this.setValid(index, this.isValid(value))) {
-                this.setValue(index, value);
-            }
-            return this;
-        }
-        /**
-         * Write a value to the underlying buffers at the supplied index, bypassing
-         * the null-value check. This is a low-level method that
-         * @param {number} index
-         * @param {T['TValue'] | TNull } value
-         */
-        setValue(index, value) { this._setValue(this, index, value); }
-        setValid(index, valid) {
-            this.length = this._nulls.set(index, +valid).length;
-            return valid;
-        }
-        // @ts-ignore
-        addChild(child, name = `${this.numChildren}`) {
-            throw new Error(`Cannot append children to non-nested type "${this.type}"`);
-        }
-        /**
-         * Retrieve the child `Builder` at the supplied `index`, or null if no child
-         * exists at that index.
-         * @param {number} index The index of the child `Builder` to retrieve.
-         * @returns {Builder | null} The child Builder at the supplied index or null.
-         */
-        getChildAt(index) {
-            return this.children[index] || null;
-        }
-        /**
-         * Commit all the values that have been written to their underlying
-         * ArrayBuffers, including any child Builders if applicable, and reset
-         * the internal `Builder` state.
-         * @returns A `Data<T>` of the buffers and childData representing the values written.
-         */
-        flush() {
-            const buffers = [];
-            const values = this._values;
-            const offsets = this._offsets;
-            const typeIds = this._typeIds;
-            const { length, nullCount } = this;
-            if (typeIds) { /* Unions */
-                buffers[BufferType.TYPE] = typeIds.flush(length);
-                // DenseUnions
-                offsets && (buffers[BufferType.OFFSET] = offsets.flush(length));
-            }
-            else if (offsets) { /* Variable-width primitives (Binary, Utf8) and Lists */
-                // Binary, Utf8
-                values && (buffers[BufferType.DATA] = values.flush(offsets.last()));
-                buffers[BufferType.OFFSET] = offsets.flush(length);
-            }
-            else if (values) { /* Fixed-width primitives (Int, Float, Decimal, Time, Timestamp, and Interval) */
-                buffers[BufferType.DATA] = values.flush(length);
-            }
-            nullCount > 0 && (buffers[BufferType.VALIDITY] = this._nulls.flush(length));
-            const data = Data.new(this.type, 0, length, nullCount, buffers, this.children.map((child) => child.flush()));
-            this.clear();
-            return data;
-        }
-        /**
-         * Finalize this `Builder`, and child builders if applicable.
-         * @returns {this} The finalized `Builder` instance.
-         */
-        finish() {
-            this.finished = true;
-            this.children.forEach((child) => child.finish());
-            return this;
-        }
-        /**
-         * Clear this Builder's internal state, including child Builders if applicable, and reset the length to 0.
-         * @returns {this} The cleared `Builder` instance.
-         */
-        clear() {
-            this.length = 0;
-            this._offsets && (this._offsets.clear());
-            this._values && (this._values.clear());
-            this._nulls && (this._nulls.clear());
-            this._typeIds && (this._typeIds.clear());
-            this.children.forEach((child) => child.clear());
-            return this;
-        }
-    }
-    Builder$2.prototype.length = 1;
-    Builder$2.prototype.stride = 1;
-    Builder$2.prototype.children = null;
-    Builder$2.prototype.finished = false;
-    Builder$2.prototype.nullValues = null;
-    Builder$2.prototype._isValid = () => true;
-    /** @ignore */
-    function throughIterable(options) {
-        const { ['queueingStrategy']: queueingStrategy = 'count' } = options;
-        const { ['highWaterMark']: highWaterMark = queueingStrategy !== 'bytes' ? 1000 : Math.pow(2, 14) } = options;
-        const sizeProperty = queueingStrategy !== 'bytes' ? 'length' : 'byteLength';
-        return function* (source) {
-            let numChunks = 0;
-            const builder = Builder$2.new(options);
-            for (const value of source) {
-                if (builder.append(value)[sizeProperty] >= highWaterMark) {
-                    ++numChunks && (yield builder.toVector());
-                }
-            }
-            if (builder.finish().length > 0 || numChunks === 0) {
-                yield builder.toVector();
-            }
-        };
-    }
-    /** @ignore */
-    function throughAsyncIterable(options) {
-        const { ['queueingStrategy']: queueingStrategy = 'count' } = options;
-        const { ['highWaterMark']: highWaterMark = queueingStrategy !== 'bytes' ? 1000 : Math.pow(2, 14) } = options;
-        const sizeProperty = queueingStrategy !== 'bytes' ? 'length' : 'byteLength';
-        return function (source) {
-            return __asyncGenerator(this, arguments, function* () {
-                var e_1, _a;
-                let numChunks = 0;
-                const builder = Builder$2.new(options);
-                try {
-                    for (var source_1 = __asyncValues(source), source_1_1; source_1_1 = yield __await(source_1.next()), !source_1_1.done;) {
-                        const value = source_1_1.value;
-                        if (builder.append(value)[sizeProperty] >= highWaterMark) {
-                            ++numChunks && (yield yield __await(builder.toVector()));
-                        }
-                    }
-                }
-                catch (e_1_1) { e_1 = { error: e_1_1 }; }
-                finally {
-                    try {
-                        if (source_1_1 && !source_1_1.done && (_a = source_1.return)) yield __await(_a.call(source_1));
-                    }
-                    finally { if (e_1) throw e_1.error; }
-                }
-                if (builder.finish().length > 0 || numChunks === 0) {
-                    yield yield __await(builder.toVector());
-                }
-            });
-        };
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    // or more contributor license agreements.  See the NOTICE file
-    // distributed with this work for additional information
-    // regarding copyright ownership.  The ASF licenses this file
-    // to you under the Apache License, Version 2.0 (the
-    // "License"); you may not use this file except in compliance
-    // with the License.  You may obtain a copy of the License at
-    //
-    //   http://www.apache.org/licenses/LICENSE-2.0
-    //
-    // Unless required by applicable law or agreed to in writing,
-    // software distributed under the License is distributed on an
-    // "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    // KIND, either express or implied.  See the License for the
-    // specific language governing permissions and limitations
-    // under the License.
-    const f64 = new Float64Array(1);
-    const u32 = new Uint32Array(f64.buffer);
-    /**
-     * Convert uint16 (logically a float16) to a JS float64. Inspired by numpy's `npy_half_to_double`:
-     * https://github.com/numpy/numpy/blob/5a5987291dc95376bb098be8d8e5391e89e77a2c/numpy/core/src/npymath/halffloat.c#L29
-     * @param h {number} the uint16 to convert
-     * @private
-     * @ignore
-     */
-    function uint16ToFloat64(h) {
-        const expo = (h & 0x7C00) >> 10;
-        const sigf = (h & 0x03FF) / 1024;
-        const sign = Math.pow((-1), ((h & 0x8000) >> 15));
-        switch (expo) {
-            case 0x1F: return sign * (sigf ? NaN : 1 / 0);
-            case 0x00: return sign * (sigf ? 6.103515625e-5 * sigf : 0);
-        }
-        return sign * (Math.pow(2, (expo - 15))) * (1 + sigf);
-    }
-    /**
-     * Convert a float64 to uint16 (assuming the float64 is logically a float16). Inspired by numpy's `npy_double_to_half`:
-     * https://github.com/numpy/numpy/blob/5a5987291dc95376bb098be8d8e5391e89e77a2c/numpy/core/src/npymath/halffloat.c#L43
-     * @param d {number} The float64 to convert
-     * @private
-     * @ignore
-     */
-    function float64ToUint16(d) {
-        if (d !== d) {
-            return 0x7E00;
-        } // NaN
-        f64[0] = d;
-        // Magic numbers:
-        // 0x80000000 = 10000000 00000000 00000000 00000000 -- masks the 32nd bit
-        // 0x7ff00000 = 01111111 11110000 00000000 00000000 -- masks the 21st-31st bits
-        // 0x000fffff = 00000000 00001111 11111111 11111111 -- masks the 1st-20th bit
-        const sign = (u32[1] & 0x80000000) >> 16 & 0xFFFF;
-        let expo = (u32[1] & 0x7ff00000), sigf = 0x0000;
-        if (expo >= 0x40f00000) {
-            //
-            // If exponent overflowed, the float16 is either NaN or Infinity.
-            // Rules to propagate the sign bit: mantissa > 0 ? NaN : +/-Infinity
-            //
-            // Magic numbers:
-            // 0x40F00000 = 01000000 11110000 00000000 00000000 -- 6-bit exponent overflow
-            // 0x7C000000 = 01111100 00000000 00000000 00000000 -- masks the 27th-31st bits
-            //
-            // returns:
-            // qNaN, aka 32256 decimal, 0x7E00 hex, or 01111110 00000000 binary
-            // sNaN, aka 32000 decimal, 0x7D00 hex, or 01111101 00000000 binary
-            // +inf, aka 31744 decimal, 0x7C00 hex, or 01111100 00000000 binary
-            // -inf, aka 64512 decimal, 0xFC00 hex, or 11111100 00000000 binary
-            //
-            // If mantissa is greater than 23 bits, set to +Infinity like numpy
-            if (u32[0] > 0) {
-                expo = 0x7C00;
-            }
-            else {
-                expo = (expo & 0x7C000000) >> 16;
-                sigf = (u32[1] & 0x000fffff) >> 10;
-            }
-        }
-        else if (expo <= 0x3f000000) {
-            //
-            // If exponent underflowed, the float is either signed zero or subnormal.
-            //
-            // Magic numbers:
-            // 0x3F000000 = 00111111 00000000 00000000 00000000 -- 6-bit exponent underflow
-            //
-            sigf = 0x100000 + (u32[1] & 0x000fffff);
-            sigf = 0x100000 + (sigf << ((expo >> 20) - 998)) >> 21;
-            expo = 0;
-        }
-        else {
-            //
-            // No overflow or underflow, rebase the exponent and round the mantissa
-            // Magic numbers:
-            // 0x200 = 00000010 00000000 -- masks off the 10th bit
-            //
-            // Ensure the first mantissa bit (the 10th one) is 1 and round
-            expo = (expo - 0x3f000000) >> 10;
-            sigf = ((u32[1] & 0x000fffff) + 0x200) >> 10;
-        }
-        return sign | expo | sigf & 0xFFFF;
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    const isArrowBigNumSymbol = Symbol.for('isArrowBigNum');
-    /** @ignore */
-    function BigNum(x, ...xs) {
-        if (xs.length === 0) {
-            return Object.setPrototypeOf(toArrayBufferView(this['TypedArray'], x), this.constructor.prototype);
-        }
-        return Object.setPrototypeOf(new this['TypedArray'](x, ...xs), this.constructor.prototype);
-    }
-    BigNum.prototype[isArrowBigNumSymbol] = true;
-    BigNum.prototype.toJSON = function () { return `"${bignumToString(this)}"`; };
-    BigNum.prototype.valueOf = function () { return bignumToNumber(this); };
-    BigNum.prototype.toString = function () { return bignumToString(this); };
-    BigNum.prototype[Symbol.toPrimitive] = function (hint = 'default') {
-        switch (hint) {
-            case 'number': return bignumToNumber(this);
-            case 'string': return bignumToString(this);
-            case 'default': return bignumToBigInt(this);
-        }
-        // @ts-ignore
-        return bignumToString(this);
-    };
-    /** @ignore */
-    function SignedBigNum(...args) { return BigNum.apply(this, args); }
-    /** @ignore */
-    function UnsignedBigNum(...args) { return BigNum.apply(this, args); }
-    /** @ignore */
-    function DecimalBigNum(...args) { return BigNum.apply(this, args); }
-    Object.setPrototypeOf(SignedBigNum.prototype, Object.create(Int32Array.prototype));
-    Object.setPrototypeOf(UnsignedBigNum.prototype, Object.create(Uint32Array.prototype));
-    Object.setPrototypeOf(DecimalBigNum.prototype, Object.create(Uint32Array.prototype));
-    Object.assign(SignedBigNum.prototype, BigNum.prototype, { 'constructor': SignedBigNum, 'signed': true, 'TypedArray': Int32Array, 'BigIntArray': BigInt64ArrayCtor });
-    Object.assign(UnsignedBigNum.prototype, BigNum.prototype, { 'constructor': UnsignedBigNum, 'signed': false, 'TypedArray': Uint32Array, 'BigIntArray': BigUint64ArrayCtor });
-    Object.assign(DecimalBigNum.prototype, BigNum.prototype, { 'constructor': DecimalBigNum, 'signed': true, 'TypedArray': Uint32Array, 'BigIntArray': BigUint64ArrayCtor });
-    /** @ignore */
-    function bignumToNumber(bn) {
-        const { buffer, byteOffset, length, 'signed': signed } = bn;
-        const words = new Int32Array(buffer, byteOffset, length);
-        let number = 0, i = 0;
-        const n = words.length;
-        let hi, lo;
-        while (i < n) {
-            lo = words[i++];
-            hi = words[i++];
-            signed || (hi = hi >>> 0);
-            number += (lo >>> 0) + (hi * (Math.pow(i, 32)));
-        }
-        return number;
-    }
-    /** @ignore */
-    let bignumToString;
-    /** @ignore */
-    let bignumToBigInt;
-    if (!BigIntAvailable) {
-        bignumToString = decimalToString;
-        bignumToBigInt = bignumToString;
-    }
-    else {
-        bignumToBigInt = ((a) => a.byteLength === 8 ? new a['BigIntArray'](a.buffer, a.byteOffset, 1)[0] : decimalToString(a));
-        bignumToString = ((a) => a.byteLength === 8 ? `${new a['BigIntArray'](a.buffer, a.byteOffset, 1)[0]}` : decimalToString(a));
-    }
-    /** @ignore */
-    function decimalToString(a) {
-        let digits = '';
-        const base64 = new Uint32Array(2);
-        let base32 = new Uint16Array(a.buffer, a.byteOffset, a.byteLength / 2);
-        const checks = new Uint32Array((base32 = new Uint16Array(base32).reverse()).buffer);
-        let i = -1;
-        const n = base32.length - 1;
-        do {
-            for (base64[0] = base32[i = 0]; i < n;) {
-                base32[i++] = base64[1] = base64[0] / 10;
-                base64[0] = ((base64[0] - base64[1] * 10) << 16) + base32[i];
-            }
-            base32[i] = base64[1] = base64[0] / 10;
-            base64[0] = base64[0] - base64[1] * 10;
-            digits = `${base64[0]}${digits}`;
-        } while (checks[0] || checks[1] || checks[2] || checks[3]);
-        return digits ? digits : `0`;
-    }
-    /** @ignore */
-    class BN {
-        /** @nocollapse */
-        static new(num, isSigned) {
-            switch (isSigned) {
-                case true: return new SignedBigNum(num);
-                case false: return new UnsignedBigNum(num);
-            }
-            switch (num.constructor) {
-                case Int8Array:
-                case Int16Array:
-                case Int32Array:
-                case BigInt64ArrayCtor:
-                    return new SignedBigNum(num);
-            }
-            if (num.byteLength === 16) {
-                return new DecimalBigNum(num);
-            }
-            return new UnsignedBigNum(num);
-        }
-        /** @nocollapse */
-        static signed(num) {
-            return new SignedBigNum(num);
-        }
-        /** @nocollapse */
-        static unsigned(num) {
-            return new UnsignedBigNum(num);
-        }
-        /** @nocollapse */
-        static decimal(num) {
-            return new DecimalBigNum(num);
-        }
-        constructor(num, isSigned) {
-            return BN.new(num, isSigned);
-        }
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
     class Schema {
         constructor(fields = [], metadata, dictionaries) {
             this.fields = (fields || []);
@@ -6946,247 +6166,6 @@
     Visitor.prototype.visitSparseUnion = null;
     Visitor.prototype.visitIntervalDayTime = null;
     Visitor.prototype.visitIntervalYearMonth = null;
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class SetVisitor extends Visitor {
-    }
-    /** @ignore */
-    const setEpochMsToDays = (data, index, epochMs) => { data[index] = (epochMs / 86400000) | 0; };
-    /** @ignore */
-    const setEpochMsToMillisecondsLong = (data, index, epochMs) => {
-        data[index] = (epochMs % 4294967296) | 0;
-        data[index + 1] = (epochMs / 4294967296) | 0;
-    };
-    /** @ignore */
-    const setEpochMsToMicrosecondsLong = (data, index, epochMs) => {
-        data[index] = ((epochMs * 1000) % 4294967296) | 0;
-        data[index + 1] = ((epochMs * 1000) / 4294967296) | 0;
-    };
-    /** @ignore */
-    const setEpochMsToNanosecondsLong = (data, index, epochMs) => {
-        data[index] = ((epochMs * 1000000) % 4294967296) | 0;
-        data[index + 1] = ((epochMs * 1000000) / 4294967296) | 0;
-    };
-    /** @ignore */
-    const setVariableWidthBytes = (values, valueOffsets, index, value) => {
-        const { [index]: x, [index + 1]: y } = valueOffsets;
-        if (x != null && y != null) {
-            values.set(value.subarray(0, y - x), x);
-        }
-    };
-    /** @ignore */
-    const setBool = ({ offset, values }, index, val) => {
-        const idx = offset + index;
-        val ? (values[idx >> 3] |= (1 << (idx % 8))) // true
-            : (values[idx >> 3] &= ~(1 << (idx % 8))); // false
-    };
-    /** @ignore */
-    const setDateDay = ({ values }, index, value) => { setEpochMsToDays(values, index, value.valueOf()); };
-    /** @ignore */
-    const setDateMillisecond = ({ values }, index, value) => { setEpochMsToMillisecondsLong(values, index * 2, value.valueOf()); };
-    /** @ignore */
-    const setNumeric = ({ stride, values }, index, value) => { values[stride * index] = value; };
-    /** @ignore */
-    const setFloat16 = ({ stride, values }, index, value) => { values[stride * index] = float64ToUint16(value); };
-    /** @ignore */
-    const setNumericX2 = (vector, index, value) => {
-        switch (typeof value) {
-            case 'bigint':
-                vector.values64[index] = value;
-                break;
-            case 'number':
-                vector.values[index * vector.stride] = value;
-                break;
-            default: {
-                const val = value;
-                const { stride, ArrayType } = vector;
-                const long = toArrayBufferView(ArrayType, val);
-                vector.values.set(long.subarray(0, stride), stride * index);
-            }
-        }
-    };
-    /** @ignore */
-    const setFixedSizeBinary = ({ stride, values }, index, value) => { values.set(value.subarray(0, stride), stride * index); };
-    /** @ignore */
-    const setBinary = ({ values, valueOffsets }, index, value) => setVariableWidthBytes(values, valueOffsets, index, value);
-    /** @ignore */
-    const setUtf8 = ({ values, valueOffsets }, index, value) => {
-        setVariableWidthBytes(values, valueOffsets, index, encodeUtf8(value));
-    };
-    /* istanbul ignore next */
-    /** @ignore */
-    const setInt = (vector, index, value) => {
-        vector.type.bitWidth < 64
-            ? setNumeric(vector, index, value)
-            : setNumericX2(vector, index, value);
-    };
-    /* istanbul ignore next */
-    /** @ignore */
-    const setFloat = (vector, index, value) => {
-        vector.type.precision !== Precision.HALF
-            ? setNumeric(vector, index, value)
-            : setFloat16(vector, index, value);
-    };
-    /* istanbul ignore next */
-    const setDate = (vector, index, value) => {
-        vector.type.unit === DateUnit.DAY
-            ? setDateDay(vector, index, value)
-            : setDateMillisecond(vector, index, value);
-    };
-    /** @ignore */
-    const setTimestampSecond = ({ values }, index, value) => setEpochMsToMillisecondsLong(values, index * 2, value / 1000);
-    /** @ignore */
-    const setTimestampMillisecond = ({ values }, index, value) => setEpochMsToMillisecondsLong(values, index * 2, value);
-    /** @ignore */
-    const setTimestampMicrosecond = ({ values }, index, value) => setEpochMsToMicrosecondsLong(values, index * 2, value);
-    /** @ignore */
-    const setTimestampNanosecond = ({ values }, index, value) => setEpochMsToNanosecondsLong(values, index * 2, value);
-    /* istanbul ignore next */
-    /** @ignore */
-    const setTimestamp = (vector, index, value) => {
-        switch (vector.type.unit) {
-            case TimeUnit.SECOND: return setTimestampSecond(vector, index, value);
-            case TimeUnit.MILLISECOND: return setTimestampMillisecond(vector, index, value);
-            case TimeUnit.MICROSECOND: return setTimestampMicrosecond(vector, index, value);
-            case TimeUnit.NANOSECOND: return setTimestampNanosecond(vector, index, value);
-        }
-    };
-    /** @ignore */
-    const setTimeSecond = ({ values, stride }, index, value) => { values[stride * index] = value; };
-    /** @ignore */
-    const setTimeMillisecond = ({ values, stride }, index, value) => { values[stride * index] = value; };
-    /** @ignore */
-    const setTimeMicrosecond = ({ values }, index, value) => { values.set(value.subarray(0, 2), 2 * index); };
-    /** @ignore */
-    const setTimeNanosecond = ({ values }, index, value) => { values.set(value.subarray(0, 2), 2 * index); };
-    /* istanbul ignore next */
-    /** @ignore */
-    const setTime = (vector, index, value) => {
-        switch (vector.type.unit) {
-            case TimeUnit.SECOND: return setTimeSecond(vector, index, value);
-            case TimeUnit.MILLISECOND: return setTimeMillisecond(vector, index, value);
-            case TimeUnit.MICROSECOND: return setTimeMicrosecond(vector, index, value);
-            case TimeUnit.NANOSECOND: return setTimeNanosecond(vector, index, value);
-        }
-    };
-    /** @ignore */
-    const setDecimal = ({ values }, index, value) => { values.set(value.subarray(0, 4), 4 * index); };
-    /** @ignore */
-    const setList = (vector, index, value) => {
-        const values = vector.getChildAt(0), valueOffsets = vector.valueOffsets;
-        for (let idx = -1, itr = valueOffsets[index], end = valueOffsets[index + 1]; itr < end;) {
-            values.set(itr++, value.get(++idx));
-        }
-    };
-    /** @ignore */
-    const setMap = (vector, index, value) => {
-        const values = vector.getChildAt(0), valueOffsets = vector.valueOffsets;
-        const entries = value instanceof Map ? [...value] : Object.entries(value);
-        for (let idx = -1, itr = valueOffsets[index], end = valueOffsets[index + 1]; itr < end;) {
-            values.set(itr++, entries[++idx]);
-        }
-    };
-    /** @ignore */ const _setStructArrayValue = (o, v) => (c, _, i) => c === null || c === void 0 ? void 0 : c.set(o, v[i]);
-    /** @ignore */ const _setStructVectorValue = (o, v) => (c, _, i) => c === null || c === void 0 ? void 0 : c.set(o, v.get(i));
-    /** @ignore */ const _setStructMapValue = (o, v) => (c, f, _) => c === null || c === void 0 ? void 0 : c.set(o, v.get(f.name));
-    /** @ignore */ const _setStructObjectValue = (o, v) => (c, f, _) => c === null || c === void 0 ? void 0 : c.set(o, v[f.name]);
-    /** @ignore */
-    const setStruct = (vector, index, value) => {
-        const setValue = value instanceof Map ? _setStructMapValue(index, value) :
-            value instanceof AbstractVector ? _setStructVectorValue(index, value) :
-                Array.isArray(value) ? _setStructArrayValue(index, value) :
-                    _setStructObjectValue(index, value);
-        vector.type.children.forEach((f, i) => setValue(vector.getChildAt(i), f, i));
-    };
-    /* istanbul ignore next */
-    /** @ignore */
-    const setUnion = (vector, index, value) => {
-        vector.type.mode === UnionMode.Dense ?
-            setDenseUnion(vector, index, value) :
-            setSparseUnion(vector, index, value);
-    };
-    /** @ignore */
-    const setDenseUnion = (vector, index, value) => {
-        const childIndex = vector.typeIdToChildIndex[vector.typeIds[index]];
-        const child = vector.getChildAt(childIndex);
-        child && child.set(vector.valueOffsets[index], value);
-    };
-    /** @ignore */
-    const setSparseUnion = (vector, index, value) => {
-        const childIndex = vector.typeIdToChildIndex[vector.typeIds[index]];
-        const child = vector.getChildAt(childIndex);
-        child && child.set(index, value);
-    };
-    /** @ignore */
-    const setDictionary = (vector, index, value) => {
-        const key = vector.getKey(index);
-        if (key !== null) {
-            vector.setValue(key, value);
-        }
-    };
-    /* istanbul ignore next */
-    /** @ignore */
-    const setIntervalValue = (vector, index, value) => {
-        (vector.type.unit === IntervalUnit.DAY_TIME)
-            ? setIntervalDayTime(vector, index, value)
-            : setIntervalYearMonth(vector, index, value);
-    };
-    /** @ignore */
-    const setIntervalDayTime = ({ values }, index, value) => { values.set(value.subarray(0, 2), 2 * index); };
-    /** @ignore */
-    const setIntervalYearMonth = ({ values }, index, value) => { values[index] = (value[0] * 12) + (value[1] % 12); };
-    /** @ignore */
-    const setFixedSizeList = (vector, index, value) => {
-        const child = vector.getChildAt(0), { stride } = vector;
-        for (let idx = -1, offset = index * stride; ++idx < stride;) {
-            child.set(offset + idx, value.get(idx));
-        }
-    };
-    SetVisitor.prototype.visitBool = setBool;
-    SetVisitor.prototype.visitInt = setInt;
-    SetVisitor.prototype.visitInt8 = setNumeric;
-    SetVisitor.prototype.visitInt16 = setNumeric;
-    SetVisitor.prototype.visitInt32 = setNumeric;
-    SetVisitor.prototype.visitInt64 = setNumericX2;
-    SetVisitor.prototype.visitUint8 = setNumeric;
-    SetVisitor.prototype.visitUint16 = setNumeric;
-    SetVisitor.prototype.visitUint32 = setNumeric;
-    SetVisitor.prototype.visitUint64 = setNumericX2;
-    SetVisitor.prototype.visitFloat = setFloat;
-    SetVisitor.prototype.visitFloat16 = setFloat16;
-    SetVisitor.prototype.visitFloat32 = setNumeric;
-    SetVisitor.prototype.visitFloat64 = setNumeric;
-    SetVisitor.prototype.visitUtf8 = setUtf8;
-    SetVisitor.prototype.visitBinary = setBinary;
-    SetVisitor.prototype.visitFixedSizeBinary = setFixedSizeBinary;
-    SetVisitor.prototype.visitDate = setDate;
-    SetVisitor.prototype.visitDateDay = setDateDay;
-    SetVisitor.prototype.visitDateMillisecond = setDateMillisecond;
-    SetVisitor.prototype.visitTimestamp = setTimestamp;
-    SetVisitor.prototype.visitTimestampSecond = setTimestampSecond;
-    SetVisitor.prototype.visitTimestampMillisecond = setTimestampMillisecond;
-    SetVisitor.prototype.visitTimestampMicrosecond = setTimestampMicrosecond;
-    SetVisitor.prototype.visitTimestampNanosecond = setTimestampNanosecond;
-    SetVisitor.prototype.visitTime = setTime;
-    SetVisitor.prototype.visitTimeSecond = setTimeSecond;
-    SetVisitor.prototype.visitTimeMillisecond = setTimeMillisecond;
-    SetVisitor.prototype.visitTimeMicrosecond = setTimeMicrosecond;
-    SetVisitor.prototype.visitTimeNanosecond = setTimeNanosecond;
-    SetVisitor.prototype.visitDecimal = setDecimal;
-    SetVisitor.prototype.visitList = setList;
-    SetVisitor.prototype.visitStruct = setStruct;
-    SetVisitor.prototype.visitUnion = setUnion;
-    SetVisitor.prototype.visitDenseUnion = setDenseUnion;
-    SetVisitor.prototype.visitSparseUnion = setSparseUnion;
-    SetVisitor.prototype.visitDictionary = setDictionary;
-    SetVisitor.prototype.visitInterval = setIntervalValue;
-    SetVisitor.prototype.visitIntervalDayTime = setIntervalDayTime;
-    SetVisitor.prototype.visitIntervalYearMonth = setIntervalYearMonth;
-    SetVisitor.prototype.visitFixedSizeList = setFixedSizeList;
-    SetVisitor.prototype.visitMap = setMap;
-    /** @ignore */
-    const instance$8 = new SetVisitor();
 
     // automatically generated by the FlatBuffers compiler, do not modify
     /**
@@ -8383,30 +7362,6 @@
         });
         return proto[Symbol.toStringTag] = 'Row';
     })(Row.prototype);
-    class MapRow extends Row {
-        constructor(slice) {
-            super(slice, slice.length);
-            return createRowProxy(this);
-        }
-        keys() {
-            return this[kParent].getChildAt(0)[Symbol.iterator]();
-        }
-        values() {
-            return this[kParent].getChildAt(1)[Symbol.iterator]();
-        }
-        getKey(idx) {
-            return this[kParent].getChildAt(0).get(idx);
-        }
-        getIndex(key) {
-            return this[kParent].getChildAt(0).indexOf(key);
-        }
-        getValue(index) {
-            return this[kParent].getChildAt(1).get(index);
-        }
-        setValue(index, value) {
-            this[kParent].getChildAt(1).set(index, value);
-        }
-    }
     class StructRow extends Row {
         constructor(parent) {
             super(parent, parent.type.children.length);
@@ -8456,7 +7411,7 @@
         };
     })();
     /** @ignore */
-    const createRowProxy = (() => {
+    (() => {
         if (typeof Proxy === 'undefined') {
             return defineRowProxyProperties;
         }
@@ -8628,145 +7583,7 @@
         (rhs > len) && (rhs = len);
         return then ? then(source, lhs, rhs) : [lhs, rhs];
     }
-    const big0 = BigIntAvailable ? BigIntCtor(0) : 0;
-    const isNaNFast = (value) => value !== value;
-    /** @ignore */
-    function createElementComparator(search) {
-        const typeofSearch = typeof search;
-        // Compare primitives
-        if (typeofSearch !== 'object' || search === null) {
-            // Compare NaN
-            if (isNaNFast(search)) {
-                return isNaNFast;
-            }
-            return typeofSearch !== 'bigint'
-                ? (value) => value === search
-                : (value) => (big0 + value) === search;
-        }
-        // Compare Dates
-        if (search instanceof Date) {
-            const valueOfSearch = search.valueOf();
-            return (value) => value instanceof Date ? (value.valueOf() === valueOfSearch) : false;
-        }
-        // Compare TypedArrays
-        if (ArrayBuffer.isView(search)) {
-            return (value) => value ? compareArrayLike(search, value) : false;
-        }
-        // Compare Maps and Rows
-        if (search instanceof Map) {
-            return creatMapComparator(search);
-        }
-        // Compare Array-likes
-        if (Array.isArray(search)) {
-            return createArrayLikeComparator(search);
-        }
-        // Compare Vectors
-        if (search instanceof AbstractVector) {
-            return createVectorComparator(search);
-        }
-        // Compare non-empty Objects
-        return createObjectComparator(search);
-    }
-    /** @ignore */
-    function createArrayLikeComparator(lhs) {
-        const comparators = [];
-        for (let i = -1, n = lhs.length; ++i < n;) {
-            comparators[i] = createElementComparator(lhs[i]);
-        }
-        return createSubElementsComparator(comparators);
-    }
-    /** @ignore */
-    function creatMapComparator(lhs) {
-        let i = -1;
-        const comparators = [];
-        lhs.forEach((v) => comparators[++i] = createElementComparator(v));
-        return createSubElementsComparator(comparators);
-    }
-    /** @ignore */
-    function createVectorComparator(lhs) {
-        const comparators = [];
-        for (let i = -1, n = lhs.length; ++i < n;) {
-            comparators[i] = createElementComparator(lhs.get(i));
-        }
-        return createSubElementsComparator(comparators);
-    }
-    /** @ignore */
-    function createObjectComparator(lhs) {
-        const keys = Object.keys(lhs);
-        // Only compare non-empty Objects
-        if (keys.length === 0) {
-            return () => false;
-        }
-        const comparators = [];
-        for (let i = -1, n = keys.length; ++i < n;) {
-            comparators[i] = createElementComparator(lhs[keys[i]]);
-        }
-        return createSubElementsComparator(comparators, keys);
-    }
-    function createSubElementsComparator(comparators, keys) {
-        return (rhs) => {
-            if (!rhs || typeof rhs !== 'object') {
-                return false;
-            }
-            switch (rhs.constructor) {
-                case Array: return compareArray(comparators, rhs);
-                case Map:
-                case MapRow:
-                case StructRow:
-                    return compareObject(comparators, rhs, rhs.keys());
-                case Object:
-                case undefined: // support `Object.create(null)` objects
-                    return compareObject(comparators, rhs, keys || Object.keys(rhs));
-            }
-            return rhs instanceof AbstractVector ? compareVector(comparators, rhs) : false;
-        };
-    }
-    function compareArray(comparators, arr) {
-        const n = comparators.length;
-        if (arr.length !== n) {
-            return false;
-        }
-        for (let i = -1; ++i < n;) {
-            if (!(comparators[i](arr[i]))) {
-                return false;
-            }
-        }
-        return true;
-    }
-    function compareVector(comparators, vec) {
-        const n = comparators.length;
-        if (vec.length !== n) {
-            return false;
-        }
-        for (let i = -1; ++i < n;) {
-            if (!(comparators[i](vec.get(i)))) {
-                return false;
-            }
-        }
-        return true;
-    }
-    function compareObject(comparators, obj, keys) {
-        const lKeyItr = keys[Symbol.iterator]();
-        const rKeyItr = obj instanceof Map ? obj.keys() : Object.keys(obj)[Symbol.iterator]();
-        const rValItr = obj instanceof Map ? obj.values() : Object.values(obj)[Symbol.iterator]();
-        let i = 0;
-        const n = comparators.length;
-        let rVal = rValItr.next();
-        let lKey = lKeyItr.next();
-        let rKey = rKeyItr.next();
-        for (; i < n && !lKey.done && !rKey.done && !rVal.done; ++i, lKey = lKeyItr.next(), rKey = rKeyItr.next(), rVal = rValItr.next()) {
-            if (lKey.value !== rKey.value || !comparators[i](rVal.value)) {
-                break;
-            }
-        }
-        if (i === n && lKey.done && rKey.done && rVal.done) {
-            return true;
-        }
-        lKeyItr.return && lKeyItr.return();
-        rKeyItr.return && rKeyItr.return();
-        rValItr.return && rValItr.return();
-        return false;
-    }
+    BigIntAvailable ? BigIntCtor(0) : 0;
 
     // Licensed to the Apache Software Foundation (ASF) under one
     const isArray = Array.isArray;
@@ -8775,7 +7592,7 @@
         return ArrayBuffer.isView(arr) && 'BYTES_PER_ELEMENT' in arr;
     }
     /** @ignore */
-    function arrayTypeToDataType$2(ctor) {
+    function arrayTypeToDataType(ctor) {
         switch (ctor) {
             case Int8Array: return Int8;
             case Int16Array: return Int16;
@@ -8792,7 +7609,7 @@
     }
     /** @ignore */
     function vectorFromTypedArray(array) {
-        const ArrowType = arrayTypeToDataType$2(array.constructor);
+        const ArrowType = arrayTypeToDataType(array.constructor);
         if (!ArrowType) {
             throw new TypeError('Unrecognized Array input');
         }
@@ -9287,9 +8104,9 @@
             return Decimal$1.endDecimal(b);
         }
         visitDate(node, b) {
-            Date$1.startDate(b);
-            Date$1.addUnit(b, node.unit);
-            return Date$1.endDate(b);
+            Date.startDate(b);
+            Date.addUnit(b, node.unit);
+            return Date.endDate(b);
         }
         visitTime(node, b) {
             Time.startTime(b);
@@ -9354,7 +8171,7 @@
         }
     }
     /** @ignore */
-    const instance$7 = new TypeAssembler();
+    const instance$1 = new TypeAssembler();
 
     // Licensed to the Apache Software Foundation (ASF) under one
     /** @ignore */
@@ -9811,7 +8628,7 @@
                 return new Decimal(t.scale(), t.precision());
             }
             case Type$1['Date']: {
-                const t = f.type(new Date$1());
+                const t = f.type(new Date());
                 return new Date_(t.unit());
             }
             case Type$1['Time']: {
@@ -9875,12 +8692,12 @@
         const type = field.type;
         let typeId = field.typeId;
         if (!DataType.isDictionary(type)) {
-            typeOffset = instance$7.visit(type, b);
+            typeOffset = instance$1.visit(type, b);
         }
         else {
             typeId = type.dictionary.typeId;
-            dictionaryOffset = instance$7.visit(type, b);
-            typeOffset = instance$7.visit(type.dictionary, b);
+            dictionaryOffset = instance$1.visit(type, b);
+            typeOffset = instance$1.visit(type.dictionary, b);
         }
         const childOffsets = (type.children || []).map((f) => Field.encode(b, f));
         const childrenVectorOffset = Field$1.createChildrenVector(b, childOffsets);
@@ -10272,25 +9089,25 @@
     function compareList(type, other) {
         return (type === other) || (compareConstructor(type, other) &&
             type.children.length === other.children.length &&
-            instance$6.compareManyFields(type.children, other.children));
+            instance.compareManyFields(type.children, other.children));
     }
     function compareStruct(type, other) {
         return (type === other) || (compareConstructor(type, other) &&
             type.children.length === other.children.length &&
-            instance$6.compareManyFields(type.children, other.children));
+            instance.compareManyFields(type.children, other.children));
     }
     function compareUnion(type, other) {
         return (type === other) || (compareConstructor(type, other) &&
             type.mode === other.mode &&
             type.typeIds.every((x, i) => x === other.typeIds[i]) &&
-            instance$6.compareManyFields(type.children, other.children));
+            instance.compareManyFields(type.children, other.children));
     }
     function compareDictionary(type, other) {
         return (type === other) || (compareConstructor(type, other) &&
             type.id === other.id &&
             type.isOrdered === other.isOrdered &&
-            instance$6.visit(type.indices, other.indices) &&
-            instance$6.visit(type.dictionary, other.dictionary));
+            instance.visit(type.indices, other.indices) &&
+            instance.visit(type.dictionary, other.dictionary));
     }
     function compareInterval(type, other) {
         return (type === other) || (compareConstructor(type, other) &&
@@ -10300,13 +9117,13 @@
         return (type === other) || (compareConstructor(type, other) &&
             type.listSize === other.listSize &&
             type.children.length === other.children.length &&
-            instance$6.compareManyFields(type.children, other.children));
+            instance.compareManyFields(type.children, other.children));
     }
     function compareMap(type, other) {
         return (type === other) || (compareConstructor(type, other) &&
             type.keysSorted === other.keysSorted &&
             type.children.length === other.children.length &&
-            instance$6.compareManyFields(type.children, other.children));
+            instance.compareManyFields(type.children, other.children));
     }
     TypeComparator.prototype.visitNull = compareAny;
     TypeComparator.prototype.visitBool = compareAny;
@@ -10352,9 +9169,9 @@
     TypeComparator.prototype.visitFixedSizeList = compareFixedSizeList;
     TypeComparator.prototype.visitMap = compareMap;
     /** @ignore */
-    const instance$6 = new TypeComparator();
+    const instance = new TypeComparator();
     function compareSchemas(schema, other) {
-        return instance$6.compareSchemas(schema, other);
+        return instance.compareSchemas(schema, other);
     }
 
     // Licensed to the Apache Software Foundation (ASF) under one
@@ -10971,299 +9788,6 @@
     BaseVector.prototype[Symbol.isConcatSpreadable] = true;
 
     // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class BinaryVector extends BaseVector {
-        asUtf8() {
-            return AbstractVector.new(this.data.clone(new Utf8()));
-        }
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class BoolVector extends BaseVector {
-        /** @nocollapse */
-        static from(input) {
-            return vectorFromValuesWithType(() => new Bool(), input);
-        }
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class DateVector extends BaseVector {
-        /** @nocollapse */
-        static from(...args) {
-            if (args.length === 2) {
-                return vectorFromValuesWithType(() => args[1] === DateUnit.DAY ? new DateDay() : new DateMillisecond(), args[0]);
-            }
-            return vectorFromValuesWithType(() => new DateMillisecond(), args[0]);
-        }
-    }
-    /** @ignore */
-    class DateDayVector extends DateVector {
-    }
-    /** @ignore */
-    class DateMillisecondVector extends DateVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class DecimalVector extends BaseVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class DictionaryVector extends BaseVector {
-        constructor(data) {
-            super(data);
-            this.indices = AbstractVector.new(data.clone(this.type.indices));
-        }
-        /** @nocollapse */
-        static from(...args) {
-            if (args.length === 3) {
-                const [values, indices, keys] = args;
-                const type = new Dictionary(values.type, indices, null, null);
-                return AbstractVector.new(Data.Dictionary(type, 0, keys.length, 0, null, keys, values));
-            }
-            return vectorFromValuesWithType(() => args[0].type, args[0]);
-        }
-        get dictionary() { return this.data.dictionary; }
-        reverseLookup(value) { return this.dictionary.indexOf(value); }
-        getKey(idx) { return this.indices.get(idx); }
-        getValue(key) { return this.dictionary.get(key); }
-        setKey(idx, key) { return this.indices.set(idx, key); }
-        setValue(key, value) { return this.dictionary.set(key, value); }
-    }
-    DictionaryVector.prototype.indices = null;
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class FixedSizeBinaryVector extends BaseVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class FixedSizeListVector extends BaseVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class FloatVector extends BaseVector {
-        /** @nocollapse */
-        static from(input) {
-            let ArrowType = vectorTypeToDataType$1(this);
-            if ((input instanceof ArrayBuffer) || ArrayBuffer.isView(input)) {
-                const InputType = arrayTypeToDataType$1(input.constructor) || ArrowType;
-                // Special case, infer the Arrow DataType from the input if calling the base
-                // FloatVector.from with a TypedArray, e.g. `FloatVector.from(new Float32Array())`
-                if (ArrowType === null) {
-                    ArrowType = InputType;
-                }
-                // If the DataType inferred from the Vector constructor matches the
-                // DataType inferred from the input arguments, return zero-copy view
-                if (ArrowType && ArrowType === InputType) {
-                    const type = new ArrowType();
-                    const length = input.byteLength / type.ArrayType.BYTES_PER_ELEMENT;
-                    // If the ArrowType is Float16 but the input type isn't a Uint16Array,
-                    // let the Float16Builder handle casting the input values to Uint16s.
-                    if (!convertTo16Bit(ArrowType, input.constructor)) {
-                        return AbstractVector.new(Data.Float(type, 0, length, 0, null, input));
-                    }
-                }
-            }
-            if (ArrowType) {
-                // If the DataType inferred from the Vector constructor is different than
-                // the DataType inferred from the input TypedArray, or if input isn't a
-                // TypedArray, use the Builders to construct the result Vector
-                return vectorFromValuesWithType(() => new ArrowType(), input);
-            }
-            if ((input instanceof DataView) || (input instanceof ArrayBuffer)) {
-                throw new TypeError(`Cannot infer float type from instance of ${input.constructor.name}`);
-            }
-            throw new TypeError('Unrecognized FloatVector input');
-        }
-    }
-    /** @ignore */
-    class Float16Vector extends FloatVector {
-        // Since JS doesn't have half floats, `toArray()` returns a zero-copy slice
-        // of the underlying Uint16Array data. This behavior ensures we don't incur
-        // extra compute or copies if you're calling `toArray()` in order to create
-        // a buffer for something like WebGL. Buf if you're using JS and want typed
-        // arrays of 4-to-8-byte precision, these methods will enumerate the values
-        // and clamp to the desired byte lengths.
-        toFloat32Array() { return new Float32Array(this); }
-        toFloat64Array() { return new Float64Array(this); }
-    }
-    /** @ignore */
-    class Float32Vector extends FloatVector {
-    }
-    /** @ignore */
-    class Float64Vector extends FloatVector {
-    }
-    const convertTo16Bit = (typeCtor, dataCtor) => {
-        return (typeCtor === Float16) && (dataCtor !== Uint16Array);
-    };
-    /** @ignore */
-    const arrayTypeToDataType$1 = (ctor) => {
-        switch (ctor) {
-            case Uint16Array: return Float16;
-            case Float32Array: return Float32;
-            case Float64Array: return Float64;
-            default: return null;
-        }
-    };
-    /** @ignore */
-    const vectorTypeToDataType$1 = (ctor) => {
-        switch (ctor) {
-            case Float16Vector: return Float16;
-            case Float32Vector: return Float32;
-            case Float64Vector: return Float64;
-            default: return null;
-        }
-    };
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class IntervalVector extends BaseVector {
-    }
-    /** @ignore */
-    class IntervalDayTimeVector extends IntervalVector {
-    }
-    /** @ignore */
-    class IntervalYearMonthVector extends IntervalVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class IntVector extends BaseVector {
-        /** @nocollapse */
-        static from(...args) {
-            const [input, is64bit = false] = args;
-            let ArrowType = vectorTypeToDataType(this, is64bit);
-            if ((input instanceof ArrayBuffer) || ArrayBuffer.isView(input)) {
-                const InputType = arrayTypeToDataType(input.constructor, is64bit) || ArrowType;
-                // Special case, infer the Arrow DataType from the input if calling the base
-                // IntVector.from with a TypedArray, e.g. `IntVector.from(new Int32Array())`
-                if (ArrowType === null) {
-                    ArrowType = InputType;
-                }
-                // If the DataType inferred from the Vector constructor matches the
-                // DataType inferred from the input arguments, return zero-copy view
-                if (ArrowType && ArrowType === InputType) {
-                    const type = new ArrowType();
-                    let length = input.byteLength / type.ArrayType.BYTES_PER_ELEMENT;
-                    // If the ArrowType is 64bit but the input type is 32bit pairs, update the logical length
-                    if (convert32To64Bit(ArrowType, input.constructor)) {
-                        length *= 0.5;
-                    }
-                    return AbstractVector.new(Data.Int(type, 0, length, 0, null, input));
-                }
-            }
-            if (ArrowType) {
-                // If the DataType inferred from the Vector constructor is different than
-                // the DataType inferred from the input TypedArray, or if input isn't a
-                // TypedArray, use the Builders to construct the result Vector
-                return vectorFromValuesWithType(() => new ArrowType(), input);
-            }
-            if ((input instanceof DataView) || (input instanceof ArrayBuffer)) {
-                throw new TypeError(`Cannot infer integer type from instance of ${input.constructor.name}`);
-            }
-            throw new TypeError('Unrecognized IntVector input');
-        }
-    }
-    /** @ignore */
-    class Int8Vector extends IntVector {
-    }
-    /** @ignore */
-    class Int16Vector extends IntVector {
-    }
-    /** @ignore */
-    class Int32Vector extends IntVector {
-    }
-    /** @ignore */
-    class Int64Vector extends IntVector {
-        toBigInt64Array() {
-            return toBigInt64Array(this.values);
-        }
-        get values64() {
-            return this._values64 || (this._values64 = this.toBigInt64Array());
-        }
-    }
-    /** @ignore */
-    class Uint8Vector extends IntVector {
-    }
-    /** @ignore */
-    class Uint16Vector extends IntVector {
-    }
-    /** @ignore */
-    class Uint32Vector extends IntVector {
-    }
-    /** @ignore */
-    class Uint64Vector extends IntVector {
-        toBigUint64Array() {
-            return toBigUint64Array(this.values);
-        }
-        get values64() {
-            return this._values64 || (this._values64 = this.toBigUint64Array());
-        }
-    }
-    const convert32To64Bit = (typeCtor, dataCtor) => {
-        return (typeCtor === Int64$1 || typeCtor === Uint64$1) &&
-            (dataCtor === Int32Array || dataCtor === Uint32Array);
-    };
-    /** @ignore */
-    const arrayTypeToDataType = (ctor, is64bit) => {
-        switch (ctor) {
-            case Int8Array: return Int8;
-            case Int16Array: return Int16;
-            case Int32Array: return is64bit ? Int64$1 : Int32;
-            case BigInt64ArrayCtor: return Int64$1;
-            case Uint8Array: return Uint8;
-            case Uint16Array: return Uint16;
-            case Uint32Array: return is64bit ? Uint64$1 : Uint32;
-            case BigUint64ArrayCtor: return Uint64$1;
-            default: return null;
-        }
-    };
-    /** @ignore */
-    const vectorTypeToDataType = (ctor, is64bit) => {
-        switch (ctor) {
-            case Int8Vector: return Int8;
-            case Int16Vector: return Int16;
-            case Int32Vector: return is64bit ? Int64$1 : Int32;
-            case Int64Vector: return Int64$1;
-            case Uint8Vector: return Uint8;
-            case Uint16Vector: return Uint16;
-            case Uint32Vector: return is64bit ? Uint64$1 : Uint32;
-            case Uint64Vector: return Uint64$1;
-            default: return null;
-        }
-    };
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class ListVector extends BaseVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class MapVector extends BaseVector {
-        asList() {
-            const child = this.type.children[0];
-            return AbstractVector.new(this.data.clone(new List(child)));
-        }
-        bind(index) {
-            const child = this.getChildAt(0);
-            const { [index]: begin, [index + 1]: end } = this.valueOffsets;
-            return new MapRow(child.slice(begin, end));
-        }
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class NullVector extends BaseVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
     /** @ignore */ const kRowIndex = Symbol.for('rowIndex');
     /** @ignore */
     class StructVector extends BaseVector {
@@ -11272,739 +9796,6 @@
             const bound = Object.create(proto);
             bound[kRowIndex] = index;
             return bound;
-        }
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class TimestampVector extends BaseVector {
-    }
-    /** @ignore */
-    class TimestampSecondVector extends TimestampVector {
-    }
-    /** @ignore */
-    class TimestampMillisecondVector extends TimestampVector {
-    }
-    /** @ignore */
-    class TimestampMicrosecondVector extends TimestampVector {
-    }
-    /** @ignore */
-    class TimestampNanosecondVector extends TimestampVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class TimeVector extends BaseVector {
-    }
-    /** @ignore */
-    class TimeSecondVector extends TimeVector {
-    }
-    /** @ignore */
-    class TimeMillisecondVector extends TimeVector {
-    }
-    /** @ignore */
-    class TimeMicrosecondVector extends TimeVector {
-    }
-    /** @ignore */
-    class TimeNanosecondVector extends TimeVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class UnionVector extends BaseVector {
-        get typeIdToChildIndex() { return this.data.type.typeIdToChildIndex; }
-    }
-    /** @ignore */
-    class DenseUnionVector extends UnionVector {
-        get valueOffsets() { return this.data.valueOffsets; }
-    }
-    /** @ignore */
-    class SparseUnionVector extends UnionVector {
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class Utf8Vector extends BaseVector {
-        /** @nocollapse */
-        static from(input) {
-            return vectorFromValuesWithType(() => new Utf8(), input);
-        }
-        asBinary() {
-            return AbstractVector.new(this.data.clone(new Binary()));
-        }
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    // or more contributor license agreements.  See the NOTICE file
-    // distributed with this work for additional information
-    // regarding copyright ownership.  The ASF licenses this file
-    // to you under the Apache License, Version 2.0 (the
-    // "License"); you may not use this file except in compliance
-    // with the License.  You may obtain a copy of the License at
-    //
-    //   http://www.apache.org/licenses/LICENSE-2.0
-    //
-    // Unless required by applicable law or agreed to in writing,
-    // software distributed under the License is distributed on an
-    // "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    // KIND, either express or implied.  See the License for the
-    // specific language governing permissions and limitations
-    // under the License.
-    /** @ignore */
-    function partial0(visit) {
-        return function () { return visit(this); };
-    }
-    /** @ignore */
-    function partial1(visit) {
-        return function (a) { return visit(this, a); };
-    }
-    /** @ignore */
-    function partial2(visit) {
-        return function (a, b) { return visit(this, a, b); };
-    }
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class GetVisitor extends Visitor {
-    }
-    /** @ignore */ const epochDaysToMs = (data, index) => 86400000 * data[index];
-    /** @ignore */ const epochMillisecondsLongToMs = (data, index) => 4294967296 * (data[index + 1]) + (data[index] >>> 0);
-    /** @ignore */ const epochMicrosecondsLongToMs = (data, index) => 4294967296 * (data[index + 1] / 1000) + ((data[index] >>> 0) / 1000);
-    /** @ignore */ const epochNanosecondsLongToMs = (data, index) => 4294967296 * (data[index + 1] / 1000000) + ((data[index] >>> 0) / 1000000);
-    /** @ignore */ const epochMillisecondsToDate = (epochMs) => new Date(epochMs);
-    /** @ignore */ const epochDaysToDate = (data, index) => epochMillisecondsToDate(epochDaysToMs(data, index));
-    /** @ignore */ const epochMillisecondsLongToDate = (data, index) => epochMillisecondsToDate(epochMillisecondsLongToMs(data, index));
-    /** @ignore */
-    const getNull = (_vector, _index) => null;
-    /** @ignore */
-    const getVariableWidthBytes = (values, valueOffsets, index) => {
-        const { [index]: x, [index + 1]: y } = valueOffsets;
-        return x != null && y != null ? values.subarray(x, y) : null;
-    };
-    /** @ignore */
-    const getBool = ({ offset, values }, index) => {
-        const idx = offset + index;
-        const byte = values[idx >> 3];
-        return (byte & 1 << (idx % 8)) !== 0;
-    };
-    /** @ignore */
-    const getDateDay = ({ values }, index) => epochDaysToDate(values, index);
-    /** @ignore */
-    const getDateMillisecond = ({ values }, index) => epochMillisecondsLongToDate(values, index * 2);
-    /** @ignore */
-    const getNumeric = ({ stride, values }, index) => values[stride * index];
-    /** @ignore */
-    const getFloat16 = ({ stride, values }, index) => uint16ToFloat64(values[stride * index]);
-    /** @ignore */
-    const getBigInts = ({ stride, values, type }, index) => BN.new(values.subarray(stride * index, stride * (index + 1)), type.isSigned);
-    /** @ignore */
-    const getFixedSizeBinary = ({ stride, values }, index) => values.subarray(stride * index, stride * (index + 1));
-    /** @ignore */
-    const getBinary = ({ values, valueOffsets }, index) => getVariableWidthBytes(values, valueOffsets, index);
-    /** @ignore */
-    const getUtf8 = ({ values, valueOffsets }, index) => {
-        const bytes = getVariableWidthBytes(values, valueOffsets, index);
-        return bytes !== null ? decodeUtf8(bytes) : null;
-    };
-    /* istanbul ignore next */
-    /** @ignore */
-    const getInt = (vector, index) => (vector.type.bitWidth < 64
-        ? getNumeric(vector, index)
-        : getBigInts(vector, index));
-    /* istanbul ignore next */
-    /** @ignore */
-    const getFloat = (vector, index) => (vector.type.precision !== Precision.HALF
-        ? getNumeric(vector, index)
-        : getFloat16(vector, index));
-    /* istanbul ignore next */
-    /** @ignore */
-    const getDate = (vector, index) => (vector.type.unit === DateUnit.DAY
-        ? getDateDay(vector, index)
-        : getDateMillisecond(vector, index));
-    /** @ignore */
-    const getTimestampSecond = ({ values }, index) => 1000 * epochMillisecondsLongToMs(values, index * 2);
-    /** @ignore */
-    const getTimestampMillisecond = ({ values }, index) => epochMillisecondsLongToMs(values, index * 2);
-    /** @ignore */
-    const getTimestampMicrosecond = ({ values }, index) => epochMicrosecondsLongToMs(values, index * 2);
-    /** @ignore */
-    const getTimestampNanosecond = ({ values }, index) => epochNanosecondsLongToMs(values, index * 2);
-    /* istanbul ignore next */
-    /** @ignore */
-    const getTimestamp = (vector, index) => {
-        switch (vector.type.unit) {
-            case TimeUnit.SECOND: return getTimestampSecond(vector, index);
-            case TimeUnit.MILLISECOND: return getTimestampMillisecond(vector, index);
-            case TimeUnit.MICROSECOND: return getTimestampMicrosecond(vector, index);
-            case TimeUnit.NANOSECOND: return getTimestampNanosecond(vector, index);
-        }
-    };
-    /** @ignore */
-    const getTimeSecond = ({ values, stride }, index) => values[stride * index];
-    /** @ignore */
-    const getTimeMillisecond = ({ values, stride }, index) => values[stride * index];
-    /** @ignore */
-    const getTimeMicrosecond = ({ values }, index) => BN.signed(values.subarray(2 * index, 2 * (index + 1)));
-    /** @ignore */
-    const getTimeNanosecond = ({ values }, index) => BN.signed(values.subarray(2 * index, 2 * (index + 1)));
-    /* istanbul ignore next */
-    /** @ignore */
-    const getTime = (vector, index) => {
-        switch (vector.type.unit) {
-            case TimeUnit.SECOND: return getTimeSecond(vector, index);
-            case TimeUnit.MILLISECOND: return getTimeMillisecond(vector, index);
-            case TimeUnit.MICROSECOND: return getTimeMicrosecond(vector, index);
-            case TimeUnit.NANOSECOND: return getTimeNanosecond(vector, index);
-        }
-    };
-    /** @ignore */
-    const getDecimal = ({ values }, index) => BN.decimal(values.subarray(4 * index, 4 * (index + 1)));
-    /** @ignore */
-    const getList = (vector, index) => {
-        const child = vector.getChildAt(0), { valueOffsets, stride } = vector;
-        return child.slice(valueOffsets[index * stride], valueOffsets[(index * stride) + 1]);
-    };
-    /** @ignore */
-    const getMap = (vector, index) => {
-        return vector.bind(index);
-    };
-    /** @ignore */
-    const getStruct = (vector, index) => {
-        return vector.bind(index);
-    };
-    /* istanbul ignore next */
-    /** @ignore */
-    const getUnion = (vector, index) => {
-        return vector.type.mode === UnionMode.Dense ?
-            getDenseUnion(vector, index) :
-            getSparseUnion(vector, index);
-    };
-    /** @ignore */
-    const getDenseUnion = (vector, index) => {
-        const childIndex = vector.typeIdToChildIndex[vector.typeIds[index]];
-        const child = vector.getChildAt(childIndex);
-        return child ? child.get(vector.valueOffsets[index]) : null;
-    };
-    /** @ignore */
-    const getSparseUnion = (vector, index) => {
-        const childIndex = vector.typeIdToChildIndex[vector.typeIds[index]];
-        const child = vector.getChildAt(childIndex);
-        return child ? child.get(index) : null;
-    };
-    /** @ignore */
-    const getDictionary = (vector, index) => {
-        return vector.getValue(vector.getKey(index));
-    };
-    /* istanbul ignore next */
-    /** @ignore */
-    const getInterval = (vector, index) => (vector.type.unit === IntervalUnit.DAY_TIME)
-        ? getIntervalDayTime(vector, index)
-        : getIntervalYearMonth(vector, index);
-    /** @ignore */
-    const getIntervalDayTime = ({ values }, index) => values.subarray(2 * index, 2 * (index + 1));
-    /** @ignore */
-    const getIntervalYearMonth = ({ values }, index) => {
-        const interval = values[index];
-        const int32s = new Int32Array(2);
-        int32s[0] = interval / 12 | 0; /* years */
-        int32s[1] = interval % 12 | 0; /* months */
-        return int32s;
-    };
-    /** @ignore */
-    const getFixedSizeList = (vector, index) => {
-        const child = vector.getChildAt(0), { stride } = vector;
-        return child.slice(index * stride, (index + 1) * stride);
-    };
-    GetVisitor.prototype.visitNull = getNull;
-    GetVisitor.prototype.visitBool = getBool;
-    GetVisitor.prototype.visitInt = getInt;
-    GetVisitor.prototype.visitInt8 = getNumeric;
-    GetVisitor.prototype.visitInt16 = getNumeric;
-    GetVisitor.prototype.visitInt32 = getNumeric;
-    GetVisitor.prototype.visitInt64 = getBigInts;
-    GetVisitor.prototype.visitUint8 = getNumeric;
-    GetVisitor.prototype.visitUint16 = getNumeric;
-    GetVisitor.prototype.visitUint32 = getNumeric;
-    GetVisitor.prototype.visitUint64 = getBigInts;
-    GetVisitor.prototype.visitFloat = getFloat;
-    GetVisitor.prototype.visitFloat16 = getFloat16;
-    GetVisitor.prototype.visitFloat32 = getNumeric;
-    GetVisitor.prototype.visitFloat64 = getNumeric;
-    GetVisitor.prototype.visitUtf8 = getUtf8;
-    GetVisitor.prototype.visitBinary = getBinary;
-    GetVisitor.prototype.visitFixedSizeBinary = getFixedSizeBinary;
-    GetVisitor.prototype.visitDate = getDate;
-    GetVisitor.prototype.visitDateDay = getDateDay;
-    GetVisitor.prototype.visitDateMillisecond = getDateMillisecond;
-    GetVisitor.prototype.visitTimestamp = getTimestamp;
-    GetVisitor.prototype.visitTimestampSecond = getTimestampSecond;
-    GetVisitor.prototype.visitTimestampMillisecond = getTimestampMillisecond;
-    GetVisitor.prototype.visitTimestampMicrosecond = getTimestampMicrosecond;
-    GetVisitor.prototype.visitTimestampNanosecond = getTimestampNanosecond;
-    GetVisitor.prototype.visitTime = getTime;
-    GetVisitor.prototype.visitTimeSecond = getTimeSecond;
-    GetVisitor.prototype.visitTimeMillisecond = getTimeMillisecond;
-    GetVisitor.prototype.visitTimeMicrosecond = getTimeMicrosecond;
-    GetVisitor.prototype.visitTimeNanosecond = getTimeNanosecond;
-    GetVisitor.prototype.visitDecimal = getDecimal;
-    GetVisitor.prototype.visitList = getList;
-    GetVisitor.prototype.visitStruct = getStruct;
-    GetVisitor.prototype.visitUnion = getUnion;
-    GetVisitor.prototype.visitDenseUnion = getDenseUnion;
-    GetVisitor.prototype.visitSparseUnion = getSparseUnion;
-    GetVisitor.prototype.visitDictionary = getDictionary;
-    GetVisitor.prototype.visitInterval = getInterval;
-    GetVisitor.prototype.visitIntervalDayTime = getIntervalDayTime;
-    GetVisitor.prototype.visitIntervalYearMonth = getIntervalYearMonth;
-    GetVisitor.prototype.visitFixedSizeList = getFixedSizeList;
-    GetVisitor.prototype.visitMap = getMap;
-    /** @ignore */
-    const instance$5 = new GetVisitor();
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class IndexOfVisitor extends Visitor {
-    }
-    /** @ignore */
-    function nullIndexOf(vector, searchElement) {
-        // if you're looking for nulls and the vector isn't empty, we've got 'em!
-        return searchElement === null && vector.length > 0 ? 0 : -1;
-    }
-    /** @ignore */
-    function indexOfNull(vector, fromIndex) {
-        const { nullBitmap } = vector.data;
-        if (!nullBitmap || vector.nullCount <= 0) {
-            return -1;
-        }
-        let i = 0;
-        for (const isValid of new BitIterator(nullBitmap, vector.data.offset + (fromIndex || 0), vector.length, nullBitmap, getBool$1)) {
-            if (!isValid) {
-                return i;
-            }
-            ++i;
-        }
-        return -1;
-    }
-    /** @ignore */
-    function indexOfValue(vector, searchElement, fromIndex) {
-        if (searchElement === undefined) {
-            return -1;
-        }
-        if (searchElement === null) {
-            return indexOfNull(vector, fromIndex);
-        }
-        const compare = createElementComparator(searchElement);
-        for (let i = (fromIndex || 0) - 1, n = vector.length; ++i < n;) {
-            if (compare(vector.get(i))) {
-                return i;
-            }
-        }
-        return -1;
-    }
-    /** @ignore */
-    function indexOfUnion(vector, searchElement, fromIndex) {
-        // Unions are special -- they do have a nullBitmap, but so can their children.
-        // If the searchElement is null, we don't know whether it came from the Union's
-        // bitmap or one of its childrens'. So we don't interrogate the Union's bitmap,
-        // since that will report the wrong index if a child has a null before the Union.
-        const compare = createElementComparator(searchElement);
-        for (let i = (fromIndex || 0) - 1, n = vector.length; ++i < n;) {
-            if (compare(vector.get(i))) {
-                return i;
-            }
-        }
-        return -1;
-    }
-    IndexOfVisitor.prototype.visitNull = nullIndexOf;
-    IndexOfVisitor.prototype.visitBool = indexOfValue;
-    IndexOfVisitor.prototype.visitInt = indexOfValue;
-    IndexOfVisitor.prototype.visitInt8 = indexOfValue;
-    IndexOfVisitor.prototype.visitInt16 = indexOfValue;
-    IndexOfVisitor.prototype.visitInt32 = indexOfValue;
-    IndexOfVisitor.prototype.visitInt64 = indexOfValue;
-    IndexOfVisitor.prototype.visitUint8 = indexOfValue;
-    IndexOfVisitor.prototype.visitUint16 = indexOfValue;
-    IndexOfVisitor.prototype.visitUint32 = indexOfValue;
-    IndexOfVisitor.prototype.visitUint64 = indexOfValue;
-    IndexOfVisitor.prototype.visitFloat = indexOfValue;
-    IndexOfVisitor.prototype.visitFloat16 = indexOfValue;
-    IndexOfVisitor.prototype.visitFloat32 = indexOfValue;
-    IndexOfVisitor.prototype.visitFloat64 = indexOfValue;
-    IndexOfVisitor.prototype.visitUtf8 = indexOfValue;
-    IndexOfVisitor.prototype.visitBinary = indexOfValue;
-    IndexOfVisitor.prototype.visitFixedSizeBinary = indexOfValue;
-    IndexOfVisitor.prototype.visitDate = indexOfValue;
-    IndexOfVisitor.prototype.visitDateDay = indexOfValue;
-    IndexOfVisitor.prototype.visitDateMillisecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTimestamp = indexOfValue;
-    IndexOfVisitor.prototype.visitTimestampSecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTimestampMillisecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTimestampMicrosecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTimestampNanosecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTime = indexOfValue;
-    IndexOfVisitor.prototype.visitTimeSecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTimeMillisecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTimeMicrosecond = indexOfValue;
-    IndexOfVisitor.prototype.visitTimeNanosecond = indexOfValue;
-    IndexOfVisitor.prototype.visitDecimal = indexOfValue;
-    IndexOfVisitor.prototype.visitList = indexOfValue;
-    IndexOfVisitor.prototype.visitStruct = indexOfValue;
-    IndexOfVisitor.prototype.visitUnion = indexOfValue;
-    IndexOfVisitor.prototype.visitDenseUnion = indexOfUnion;
-    IndexOfVisitor.prototype.visitSparseUnion = indexOfUnion;
-    IndexOfVisitor.prototype.visitDictionary = indexOfValue;
-    IndexOfVisitor.prototype.visitInterval = indexOfValue;
-    IndexOfVisitor.prototype.visitIntervalDayTime = indexOfValue;
-    IndexOfVisitor.prototype.visitIntervalYearMonth = indexOfValue;
-    IndexOfVisitor.prototype.visitFixedSizeList = indexOfValue;
-    IndexOfVisitor.prototype.visitMap = indexOfValue;
-    /** @ignore */
-    const instance$4 = new IndexOfVisitor();
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class IteratorVisitor extends Visitor {
-    }
-    /** @ignore */
-    function nullableIterator(vector) {
-        const getFn = instance$5.getVisitFn(vector);
-        return new BitIterator(vector.data.nullBitmap, vector.data.offset, vector.length, vector, (vec, idx, nullByte, nullBit) => ((nullByte & 1 << nullBit) !== 0) ? getFn(vec, idx) : null);
-    }
-    /** @ignore */
-    class VectorIterator {
-        constructor(vector, getFn) {
-            this.vector = vector;
-            this.getFn = getFn;
-            this.index = 0;
-        }
-        next() {
-            if (this.index < this.vector.length) {
-                return {
-                    value: this.getFn(this.vector, this.index++)
-                };
-            }
-            return { done: true, value: null };
-        }
-        [Symbol.iterator]() {
-            return this;
-        }
-    }
-    /** @ignore */
-    function vectorIterator(vector) {
-        // If nullable, iterate manually
-        if (vector.nullCount > 0) {
-            return nullableIterator(vector);
-        }
-        const { type, typeId, length } = vector;
-        // Fast case, defer to native iterators if possible
-        if (vector.stride === 1 && ((typeId === Type.Timestamp) ||
-            (typeId === Type.Int && type.bitWidth !== 64) ||
-            (typeId === Type.Time && type.bitWidth !== 64) ||
-            (typeId === Type.Float && type.precision > 0 /* Precision.HALF */))) {
-            return vector.data.values.subarray(0, length)[Symbol.iterator]();
-        }
-        // Otherwise, iterate manually
-        return new VectorIterator(vector, instance$5.getVisitFn(vector));
-    }
-    IteratorVisitor.prototype.visitNull = vectorIterator;
-    IteratorVisitor.prototype.visitBool = vectorIterator;
-    IteratorVisitor.prototype.visitInt = vectorIterator;
-    IteratorVisitor.prototype.visitInt8 = vectorIterator;
-    IteratorVisitor.prototype.visitInt16 = vectorIterator;
-    IteratorVisitor.prototype.visitInt32 = vectorIterator;
-    IteratorVisitor.prototype.visitInt64 = vectorIterator;
-    IteratorVisitor.prototype.visitUint8 = vectorIterator;
-    IteratorVisitor.prototype.visitUint16 = vectorIterator;
-    IteratorVisitor.prototype.visitUint32 = vectorIterator;
-    IteratorVisitor.prototype.visitUint64 = vectorIterator;
-    IteratorVisitor.prototype.visitFloat = vectorIterator;
-    IteratorVisitor.prototype.visitFloat16 = vectorIterator;
-    IteratorVisitor.prototype.visitFloat32 = vectorIterator;
-    IteratorVisitor.prototype.visitFloat64 = vectorIterator;
-    IteratorVisitor.prototype.visitUtf8 = vectorIterator;
-    IteratorVisitor.prototype.visitBinary = vectorIterator;
-    IteratorVisitor.prototype.visitFixedSizeBinary = vectorIterator;
-    IteratorVisitor.prototype.visitDate = vectorIterator;
-    IteratorVisitor.prototype.visitDateDay = vectorIterator;
-    IteratorVisitor.prototype.visitDateMillisecond = vectorIterator;
-    IteratorVisitor.prototype.visitTimestamp = vectorIterator;
-    IteratorVisitor.prototype.visitTimestampSecond = vectorIterator;
-    IteratorVisitor.prototype.visitTimestampMillisecond = vectorIterator;
-    IteratorVisitor.prototype.visitTimestampMicrosecond = vectorIterator;
-    IteratorVisitor.prototype.visitTimestampNanosecond = vectorIterator;
-    IteratorVisitor.prototype.visitTime = vectorIterator;
-    IteratorVisitor.prototype.visitTimeSecond = vectorIterator;
-    IteratorVisitor.prototype.visitTimeMillisecond = vectorIterator;
-    IteratorVisitor.prototype.visitTimeMicrosecond = vectorIterator;
-    IteratorVisitor.prototype.visitTimeNanosecond = vectorIterator;
-    IteratorVisitor.prototype.visitDecimal = vectorIterator;
-    IteratorVisitor.prototype.visitList = vectorIterator;
-    IteratorVisitor.prototype.visitStruct = vectorIterator;
-    IteratorVisitor.prototype.visitUnion = vectorIterator;
-    IteratorVisitor.prototype.visitDenseUnion = vectorIterator;
-    IteratorVisitor.prototype.visitSparseUnion = vectorIterator;
-    IteratorVisitor.prototype.visitDictionary = vectorIterator;
-    IteratorVisitor.prototype.visitInterval = vectorIterator;
-    IteratorVisitor.prototype.visitIntervalDayTime = vectorIterator;
-    IteratorVisitor.prototype.visitIntervalYearMonth = vectorIterator;
-    IteratorVisitor.prototype.visitFixedSizeList = vectorIterator;
-    IteratorVisitor.prototype.visitMap = vectorIterator;
-    /** @ignore */
-    const instance$3 = new IteratorVisitor();
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class ToArrayVisitor extends Visitor {
-    }
-    /** @ignore */
-    function arrayOfVector(vector) {
-        const { type, length, stride } = vector;
-        // Fast case, return subarray if possible
-        switch (type.typeId) {
-            case Type.Int:
-            case Type.Float:
-            case Type.Decimal:
-            case Type.Time:
-            case Type.Timestamp:
-                return vector.data.values.subarray(0, length * stride);
-        }
-        // Otherwise if not primitive, slow copy
-        return [...instance$3.visit(vector)];
-    }
-    ToArrayVisitor.prototype.visitNull = arrayOfVector;
-    ToArrayVisitor.prototype.visitBool = arrayOfVector;
-    ToArrayVisitor.prototype.visitInt = arrayOfVector;
-    ToArrayVisitor.prototype.visitInt8 = arrayOfVector;
-    ToArrayVisitor.prototype.visitInt16 = arrayOfVector;
-    ToArrayVisitor.prototype.visitInt32 = arrayOfVector;
-    ToArrayVisitor.prototype.visitInt64 = arrayOfVector;
-    ToArrayVisitor.prototype.visitUint8 = arrayOfVector;
-    ToArrayVisitor.prototype.visitUint16 = arrayOfVector;
-    ToArrayVisitor.prototype.visitUint32 = arrayOfVector;
-    ToArrayVisitor.prototype.visitUint64 = arrayOfVector;
-    ToArrayVisitor.prototype.visitFloat = arrayOfVector;
-    ToArrayVisitor.prototype.visitFloat16 = arrayOfVector;
-    ToArrayVisitor.prototype.visitFloat32 = arrayOfVector;
-    ToArrayVisitor.prototype.visitFloat64 = arrayOfVector;
-    ToArrayVisitor.prototype.visitUtf8 = arrayOfVector;
-    ToArrayVisitor.prototype.visitBinary = arrayOfVector;
-    ToArrayVisitor.prototype.visitFixedSizeBinary = arrayOfVector;
-    ToArrayVisitor.prototype.visitDate = arrayOfVector;
-    ToArrayVisitor.prototype.visitDateDay = arrayOfVector;
-    ToArrayVisitor.prototype.visitDateMillisecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimestamp = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimestampSecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimestampMillisecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimestampMicrosecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimestampNanosecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTime = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimeSecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimeMillisecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimeMicrosecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitTimeNanosecond = arrayOfVector;
-    ToArrayVisitor.prototype.visitDecimal = arrayOfVector;
-    ToArrayVisitor.prototype.visitList = arrayOfVector;
-    ToArrayVisitor.prototype.visitStruct = arrayOfVector;
-    ToArrayVisitor.prototype.visitUnion = arrayOfVector;
-    ToArrayVisitor.prototype.visitDenseUnion = arrayOfVector;
-    ToArrayVisitor.prototype.visitSparseUnion = arrayOfVector;
-    ToArrayVisitor.prototype.visitDictionary = arrayOfVector;
-    ToArrayVisitor.prototype.visitInterval = arrayOfVector;
-    ToArrayVisitor.prototype.visitIntervalDayTime = arrayOfVector;
-    ToArrayVisitor.prototype.visitIntervalYearMonth = arrayOfVector;
-    ToArrayVisitor.prototype.visitFixedSizeList = arrayOfVector;
-    ToArrayVisitor.prototype.visitMap = arrayOfVector;
-    /** @ignore */
-    const instance$2 = new ToArrayVisitor();
-
-    /* istanbul ignore file */
-    /** @ignore */ const sum = (x, y) => x + y;
-    /** @ignore */ const variableWidthColumnErrorMessage = (type) => `Cannot compute the byte width of variable-width column ${type}`;
-    /** @ignore */
-    class ByteWidthVisitor extends Visitor {
-        visitNull(____) { return 0; }
-        visitInt(type) { return type.bitWidth / 8; }
-        visitFloat(type) { return type.ArrayType.BYTES_PER_ELEMENT; }
-        visitBinary(type) { throw new Error(variableWidthColumnErrorMessage(type)); }
-        visitUtf8(type) { throw new Error(variableWidthColumnErrorMessage(type)); }
-        visitBool(____) { return 1 / 8; }
-        visitDecimal(____) { return 16; }
-        visitDate(type) { return (type.unit + 1) * 4; }
-        visitTime(type) { return type.bitWidth / 8; }
-        visitTimestamp(type) { return type.unit === TimeUnit.SECOND ? 4 : 8; }
-        visitInterval(type) { return (type.unit + 1) * 4; }
-        visitList(type) { throw new Error(variableWidthColumnErrorMessage(type)); }
-        visitStruct(type) { return this.visitFields(type.children).reduce(sum, 0); }
-        visitUnion(type) { return this.visitFields(type.children).reduce(sum, 0); }
-        visitFixedSizeBinary(type) { return type.byteWidth; }
-        visitFixedSizeList(type) { return type.listSize * this.visitFields(type.children).reduce(sum, 0); }
-        visitMap(type) { return this.visitFields(type.children).reduce(sum, 0); }
-        visitDictionary(type) { return this.visit(type.indices); }
-        visitFields(fields) { return (fields || []).map((field) => this.visit(field.type)); }
-        visitSchema(schema) { return this.visitFields(schema.fields).reduce(sum, 0); }
-    }
-    /** @ignore */
-    const instance$1 = new ByteWidthVisitor();
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @ignore */
-    class GetVectorConstructor extends Visitor {
-        visitNull() { return NullVector; }
-        visitBool() { return BoolVector; }
-        visitInt() { return IntVector; }
-        visitInt8() { return Int8Vector; }
-        visitInt16() { return Int16Vector; }
-        visitInt32() { return Int32Vector; }
-        visitInt64() { return Int64Vector; }
-        visitUint8() { return Uint8Vector; }
-        visitUint16() { return Uint16Vector; }
-        visitUint32() { return Uint32Vector; }
-        visitUint64() { return Uint64Vector; }
-        visitFloat() { return FloatVector; }
-        visitFloat16() { return Float16Vector; }
-        visitFloat32() { return Float32Vector; }
-        visitFloat64() { return Float64Vector; }
-        visitUtf8() { return Utf8Vector; }
-        visitBinary() { return BinaryVector; }
-        visitFixedSizeBinary() { return FixedSizeBinaryVector; }
-        visitDate() { return DateVector; }
-        visitDateDay() { return DateDayVector; }
-        visitDateMillisecond() { return DateMillisecondVector; }
-        visitTimestamp() { return TimestampVector; }
-        visitTimestampSecond() { return TimestampSecondVector; }
-        visitTimestampMillisecond() { return TimestampMillisecondVector; }
-        visitTimestampMicrosecond() { return TimestampMicrosecondVector; }
-        visitTimestampNanosecond() { return TimestampNanosecondVector; }
-        visitTime() { return TimeVector; }
-        visitTimeSecond() { return TimeSecondVector; }
-        visitTimeMillisecond() { return TimeMillisecondVector; }
-        visitTimeMicrosecond() { return TimeMicrosecondVector; }
-        visitTimeNanosecond() { return TimeNanosecondVector; }
-        visitDecimal() { return DecimalVector; }
-        visitList() { return ListVector; }
-        visitStruct() { return StructVector; }
-        visitUnion() { return UnionVector; }
-        visitDenseUnion() { return DenseUnionVector; }
-        visitSparseUnion() { return SparseUnionVector; }
-        visitDictionary() { return DictionaryVector; }
-        visitInterval() { return IntervalVector; }
-        visitIntervalDayTime() { return IntervalDayTimeVector; }
-        visitIntervalYearMonth() { return IntervalYearMonthVector; }
-        visitFixedSizeList() { return FixedSizeListVector; }
-        visitMap() { return MapVector; }
-    }
-    /** @ignore */
-    const instance = new GetVectorConstructor();
-
-    // Licensed to the Apache Software Foundation (ASF) under one
-    /** @nocollapse */
-    AbstractVector.new = newVector;
-    /** @nocollapse */
-    AbstractVector.from = vectorFrom;
-    /** @ignore */
-    function newVector(data, ...args) {
-        return new (instance.getVisitFn(data)())(data, ...args);
-    }
-    /** @ignore */
-    function vectorFromValuesWithType(newDataType, input) {
-        if (isIterable(input)) {
-            return AbstractVector.from({ 'nullValues': [null, undefined], type: newDataType(), 'values': input });
-        }
-        else if (isAsyncIterable(input)) {
-            return AbstractVector.from({ 'nullValues': [null, undefined], type: newDataType(), 'values': input });
-        }
-        const { 'values': values = [], 'type': type = newDataType(), 'nullValues': nullValues = [null, undefined], } = Object.assign({}, input);
-        return isIterable(values)
-            ? AbstractVector.from(Object.assign(Object.assign({ nullValues }, input), { type }))
-            : AbstractVector.from(Object.assign(Object.assign({ nullValues }, input), { type }));
-    }
-    function vectorFrom(input) {
-        const _a = Object.assign({ 'nullValues': [null, undefined] }, input), { 'values': values = [] } = _a, options = __rest(_a, ['values']);
-        if (isIterable(values)) {
-            const chunks = [...Builder$2.throughIterable(options)(values)];
-            return (chunks.length === 1 ? chunks[0] : Chunked.concat(chunks));
-        }
-        return ((chunks) => __awaiter(this, void 0, void 0, function* () {
-            var e_1, _b;
-            const transform = Builder$2.throughAsyncIterable(options);
-            try {
-                for (var _c = __asyncValues(transform(values)), _d; _d = yield _c.next(), !_d.done;) {
-                    const chunk = _d.value;
-                    chunks.push(chunk);
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (_d && !_d.done && (_b = _c.return)) yield _b.call(_c);
-                }
-                finally { if (e_1) throw e_1.error; }
-            }
-            return (chunks.length === 1 ? chunks[0] : Chunked.concat(chunks));
-        }))([]);
-    }
-    //
-    // We provide the following method implementations for code navigability purposes only.
-    // They're overridden at runtime below with the specific Visitor implementation for each type,
-    // short-circuiting the usual Visitor traversal and reducing intermediate lookups and calls.
-    // This comment is here to remind you to not set breakpoints in these function bodies, or to inform
-    // you why the breakpoints you have already set are not being triggered. Have a great day!
-    //
-    BaseVector.prototype.get = function baseVectorGet(index) {
-        return instance$5.visit(this, index);
-    };
-    BaseVector.prototype.set = function baseVectorSet(index, value) {
-        return instance$8.visit(this, index, value);
-    };
-    BaseVector.prototype.indexOf = function baseVectorIndexOf(value, fromIndex) {
-        return instance$4.visit(this, value, fromIndex);
-    };
-    BaseVector.prototype.toArray = function baseVectorToArray() {
-        return instance$2.visit(this);
-    };
-    BaseVector.prototype.getByteWidth = function baseVectorGetByteWidth() {
-        return instance$1.visit(this.type);
-    };
-    BaseVector.prototype[Symbol.iterator] = function baseVectorSymbolIterator() {
-        return instance$3.visit(this);
-    };
-    BaseVector.prototype._bindDataAccessors = bindBaseVectorDataAccessors;
-    // Perf: bind and assign the operator Visitor methods to each of the Vector subclasses for each Type
-    Object.keys(Type)
-        .map((T) => Type[T])
-        .filter((T) => typeof T === 'number')
-        .filter((typeId) => typeId !== Type.NONE)
-        .forEach((typeId) => {
-        const VectorCtor = instance.visit(typeId);
-        VectorCtor.prototype['get'] = partial1(instance$5.getVisitFn(typeId));
-        VectorCtor.prototype['set'] = partial2(instance$8.getVisitFn(typeId));
-        VectorCtor.prototype['indexOf'] = partial2(instance$4.getVisitFn(typeId));
-        VectorCtor.prototype['toArray'] = partial0(instance$2.getVisitFn(typeId));
-        VectorCtor.prototype['getByteWidth'] = partialType0(instance$1.getVisitFn(typeId));
-        VectorCtor.prototype[Symbol.iterator] = partial0(instance$3.getVisitFn(typeId));
-    });
-    /** @ignore */
-    function partialType0(visit) {
-        return function () { return visit(this.type); };
-    }
-    /** @ignore */
-    function wrapNullableGet(fn) {
-        return function (i) { return this.isValid(i) ? fn.call(this, i) : null; };
-    }
-    /** @ignore */
-    function wrapNullableSet(fn) {
-        return function (i, a) {
-            if (setBool$1(this.nullBitmap, this.offset + i, !((a == null)))) {
-                fn.call(this, i, a);
-            }
-        };
-    }
-    /** @ignore */
-    function bindBaseVectorDataAccessors() {
-        const nullBitmap = this.nullBitmap;
-        if (nullBitmap && nullBitmap.byteLength > 0) {
-            this.get = wrapNullableGet(this.get);
-            this.set = wrapNullableSet(this.set);
         }
     }
 
@@ -12860,7 +10651,7 @@
     }
 
     // Toggle this code. When it's there, the code below works. Why???
-    Table.new([FloatVector.from(new Float32Array([]))], ['a']);
+    // Table.new([FloatVector.from(new Float32Array([]))], ['a'])
 
     const bytes2 = Uint8Array.from([65,82,82,79,87,49,0,0,255,255,255,255,120,0,0,0,16,0,0,0,0,0,10,0,12,0,6,0,5,0,8,0,10,0,0,0,0,1,4,0,12,0,0,0,8,0,8,0,0,0,4,0,8,0,0,0,4,0,0,0,1,0,0,0,20,0,0,0,16,0,20,0,8,0,0,0,7,0,12,0,0,0,16,0,16,0,0,0,0,0,0,2,16,0,0,0,28,0,0,0,4,0,0,0,0,0,0,0,1,0,0,0,49,0,0,0,8,0,12,0,8,0,7,0,8,0,0,0,0,0,0,1,32,0,0,0,255,255,255,255,136,0,0,0,20,0,0,0,0,0,0,0,12,0,22,0,6,0,5,0,8,0,12,0,12,0,0,0,0,3,4,0,24,0,0,0,8,0,0,0,0,0,0,0,0,0,10,0,24,0,12,0,4,0,8,0,10,0,0,0,60,0,0,0,16,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,16,0,0,0,12,0,20,0,6,0,8,0,12,0,16,0,12,0,0,0,0,0,4,0,60,0,0,0,40,0,0,0,4,0,0,0,1,0,0,0,136,0,0,0,0,0,0,0,144,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,8,0,0,0,4,0,8,0,0,0,4,0,0,0,1,0,0,0,20,0,0,0,16,0,20,0,8,0,0,0,7,0,12,0,0,0,16,0,16,0,0,0,0,0,0,2,16,0,0,0,28,0,0,0,4,0,0,0,0,0,0,0,1,0,0,0,49,0,0,0,8,0,12,0,8,0,7,0,8,0,0,0,0,0,0,1,32,0,0,0,168,0,0,0,65,82,82,79,87,49]);
 
