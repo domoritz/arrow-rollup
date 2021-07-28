@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@dashql/duckdb": "0.0.35",
     "rollup": "^2.54.0",
     "rollup-plugin-node-resolve": "^5.2.0"
   },
